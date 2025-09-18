@@ -1,0 +1,18 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "movietype.now_playing" : { "comment" : "Movie category: Now Playing", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Now Playing" } } } },
+    "movietype.popular" : { "comment" : "Movie category: Popular", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Popular" } } } },
+    "movietype.top_rated" : { "comment" : "Movie category: Top Rated", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Top Rated" } } } },
+    "movietype.upcoming" : { "comment" : "Movie category: Upcoming", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Upcoming" } } } },
+    "sort.popularity_asc" : { "comment" : "Sort order: Popularity ascending", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Popularity ascending" } } } },
+    "sort.popularity_desc" : { "comment" : "Sort order: Popularity descending", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Popularity descending" } } } },
+    "sort.rating_asc" : { "comment" : "Sort order: Rating ascending", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Rating ascending" } } } },
+    "sort.rating_desc" : { "comment" : "Sort order: Rating descending", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Rating descending" } } } },
+    "sort.release_asc" : { "comment" : "Sort order: Release date ascending", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Release date ascending" } } } },
+    "sort.release_desc" : { "comment" : "Sort order: Release date descending", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Release date descending" } } } }
+  },
+  "version" : "1.0"
+}
+
+

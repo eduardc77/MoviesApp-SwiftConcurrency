@@ -1,0 +1,16 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "home.title" : {
+      "comment" : "Navigation title for the Home screen.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Home" } } }
+    },
+    "home.error_title" : {
+      "comment" : "Error title shown when the Home screen fails to load content.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading Error" } } }
+    }
+  },
+  "version" : "1.0"
+}
+
+

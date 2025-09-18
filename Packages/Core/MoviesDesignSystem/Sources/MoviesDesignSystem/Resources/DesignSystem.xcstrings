@@ -1,0 +1,62 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "ds.loading" : {
+      "comment" : "Generic loading text used across the app.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading..." } }
+      }
+    },
+    "ds.loading_more" : {
+      "comment" : "Short status text shown at the bottom of lists while more items are loading.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading more..." } }
+      }
+    },
+    "ds.none" : {
+      "comment" : "Text shown when there are no items or counts to display.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "None" } }
+      }
+    },
+    "ds.retry" : {
+      "comment" : "Action button label to retry a failed operation.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try Again" } }
+      }
+    },
+    "ds.cancel" : {
+      "comment" : "Action button label to cancel an operation or dialog.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } }
+      }
+    },
+    "ds.sort_title" : {
+      "comment" : "Title of the sort options dialog.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sort movies" } }
+      }
+    },
+    "ds.search_placeholder" : {
+      "comment" : "Placeholder text for search input fields.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search movies..." } }
+      }
+    },
+    "ds.search_clear_a11y" : {
+      "comment" : "Accessibility label for the button that clears the search field.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Clear search text" } }
+      }
+    },
+    "ds.error" : {
+      "comment" : "Short error label prefix.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Error" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+
+

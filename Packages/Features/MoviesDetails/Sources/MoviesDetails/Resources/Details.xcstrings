@@ -1,0 +1,28 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "details.not_found" : {
+      "comment" : "Shown when a movie cannot be found.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Movie not found" } } }
+    },
+    "details.title" : {
+      "comment" : "Navigation title for details header (fallback).",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Details" } } }
+    },
+    "details.released_in" : {
+      "comment" : "Label showing the release year. Placeholder %1$@ is the year string.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Released in %1$@" } } }
+    },
+    "details.rating_out_of_ten" : {
+      "comment" : "Label showing rating out of 10. Placeholder %1$0.1f is the value.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$0.1f / 10" } } }
+    },
+    "details.vote_count" : {
+      "comment" : "Label showing vote count in parentheses. Placeholder %1$lld is the count.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "(%1$lld)" } } }
+    }
+  },
+  "version" : "1.0"
+}
+
+

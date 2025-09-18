@@ -6,6 +6,21 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CE9918642E7C4755005ADD05 /* MoviesData in Frameworks */ = {isa = PBXBuildFile; productRef = CE9918632E7C4755005ADD05 /* MoviesData */; };
+		CE9918662E7C4759005ADD05 /* MoviesDesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = CE9918652E7C4759005ADD05 /* MoviesDesignSystem */; };
+		CE9918682E7C475C005ADD05 /* MoviesDetails in Frameworks */ = {isa = PBXBuildFile; productRef = CE9918672E7C475C005ADD05 /* MoviesDetails */; };
+		CE99186A2E7C476C005ADD05 /* MoviesDomain in Frameworks */ = {isa = PBXBuildFile; productRef = CE9918692E7C476C005ADD05 /* MoviesDomain */; };
+		CE99186C2E7C476C005ADD05 /* MoviesFavorites in Frameworks */ = {isa = PBXBuildFile; productRef = CE99186B2E7C476C005ADD05 /* MoviesFavorites */; };
+		CE99186E2E7C476C005ADD05 /* MoviesHome in Frameworks */ = {isa = PBXBuildFile; productRef = CE99186D2E7C476C005ADD05 /* MoviesHome */; };
+		CE9918702E7C476C005ADD05 /* MoviesNavigation in Frameworks */ = {isa = PBXBuildFile; productRef = CE99186F2E7C476C005ADD05 /* MoviesNavigation */; };
+		CE9918722E7C476C005ADD05 /* MoviesNetwork in Frameworks */ = {isa = PBXBuildFile; productRef = CE9918712E7C476C005ADD05 /* MoviesNetwork */; };
+		CE9918742E7C476C005ADD05 /* MoviesSearch in Frameworks */ = {isa = PBXBuildFile; productRef = CE9918732E7C476C005ADD05 /* MoviesSearch */; };
+		CE9918762E7C476C005ADD05 /* SharedModels in Frameworks */ = {isa = PBXBuildFile; productRef = CE9918752E7C476C005ADD05 /* SharedModels */; };
+		CE9918782E7C476C005ADD05 /* AppLog in Frameworks */ = {isa = PBXBuildFile; productRef = CE9918772E7C476C005ADD05 /* AppLog */; };
+		CE99187A2E7C476C005ADD05 /* DateUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = CE9918792E7C476C005ADD05 /* DateUtilities */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		CE1FCDA72E7C440D00983989 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -29,9 +44,22 @@
 		CE1FCDB02E7C440D00983989 /* MoviesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoviesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CE9919082E7C48F3005ADD05 /* Exceptions for "Movies" folder in "Movies" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = CE1FCD972E7C440B00983989 /* Movies */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CE1FCD9A2E7C440B00983989 /* Movies */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CE9919082E7C48F3005ADD05 /* Exceptions for "Movies" folder in "Movies" target */,
+			);
 			path = Movies;
 			sourceTree = "<group>";
 		};
@@ -45,6 +73,18 @@
 			path = MoviesUITests;
 			sourceTree = "<group>";
 		};
+		CE9918F42E7C48B6005ADD05 /* Core */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = Core;
+			path = ../Packages/Core;
+			sourceTree = SOURCE_ROOT;
+		};
+		CE9918F92E7C48B6005ADD05 /* Features */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = Features;
+			path = ../Packages/Features;
+			sourceTree = SOURCE_ROOT;
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +92,18 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE99186C2E7C476C005ADD05 /* MoviesFavorites in Frameworks */,
+				CE9918762E7C476C005ADD05 /* SharedModels in Frameworks */,
+				CE9918702E7C476C005ADD05 /* MoviesNavigation in Frameworks */,
+				CE99187A2E7C476C005ADD05 /* DateUtilities in Frameworks */,
+				CE9918722E7C476C005ADD05 /* MoviesNetwork in Frameworks */,
+				CE9918782E7C476C005ADD05 /* AppLog in Frameworks */,
+				CE9918682E7C475C005ADD05 /* MoviesDetails in Frameworks */,
+				CE9918742E7C476C005ADD05 /* MoviesSearch in Frameworks */,
+				CE9918662E7C4759005ADD05 /* MoviesDesignSystem in Frameworks */,
+				CE9918642E7C4755005ADD05 /* MoviesData in Frameworks */,
+				CE99186E2E7C476C005ADD05 /* MoviesHome in Frameworks */,
+				CE99186A2E7C476C005ADD05 /* MoviesDomain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +130,9 @@
 				CE1FCD9A2E7C440B00983989 /* Movies */,
 				CE1FCDA92E7C440D00983989 /* MoviesTests */,
 				CE1FCDB32E7C440D00983989 /* MoviesUITests */,
+				CE9918622E7C4755005ADD05 /* Frameworks */,
+				CE9918F42E7C48B6005ADD05 /* Core */,
+				CE9918F92E7C48B6005ADD05 /* Features */,
 				CE1FCD992E7C440B00983989 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +145,13 @@
 				CE1FCDB02E7C440D00983989 /* MoviesUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CE9918622E7C4755005ADD05 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -109,9 +171,23 @@
 			);
 			fileSystemSynchronizedGroups = (
 				CE1FCD9A2E7C440B00983989 /* Movies */,
+				CE9918F42E7C48B6005ADD05 /* Core */,
+				CE9918F92E7C48B6005ADD05 /* Features */,
 			);
 			name = Movies;
 			packageProductDependencies = (
+				CE9918632E7C4755005ADD05 /* MoviesData */,
+				CE9918652E7C4759005ADD05 /* MoviesDesignSystem */,
+				CE9918672E7C475C005ADD05 /* MoviesDetails */,
+				CE9918692E7C476C005ADD05 /* MoviesDomain */,
+				CE99186B2E7C476C005ADD05 /* MoviesFavorites */,
+				CE99186D2E7C476C005ADD05 /* MoviesHome */,
+				CE99186F2E7C476C005ADD05 /* MoviesNavigation */,
+				CE9918712E7C476C005ADD05 /* MoviesNetwork */,
+				CE9918732E7C476C005ADD05 /* MoviesSearch */,
+				CE9918752E7C476C005ADD05 /* SharedModels */,
+				CE9918772E7C476C005ADD05 /* AppLog */,
+				CE9918792E7C476C005ADD05 /* DateUtilities */,
 			);
 			productName = Movies;
 			productReference = CE1FCD982E7C440B00983989 /* Movies.app */;
@@ -393,6 +469,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Movies/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -403,20 +480,22 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.team.Movies.Movies;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 2.5;
+				TARGETED_DEVICE_FAMILY = "1,2,3,7";
+				TVOS_DEPLOYMENT_TARGET = 16.0;
+				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
 		};
@@ -430,6 +509,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Movies/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -440,20 +520,22 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.team.Movies.Movies;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 2.5;
+				TARGETED_DEVICE_FAMILY = "1,2,3,7";
+				TVOS_DEPLOYMENT_TARGET = 16.0;
+				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
 		};
@@ -583,6 +665,57 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CE9918632E7C4755005ADD05 /* MoviesData */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoviesData;
+		};
+		CE9918652E7C4759005ADD05 /* MoviesDesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoviesDesignSystem;
+		};
+		CE9918672E7C475C005ADD05 /* MoviesDetails */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoviesDetails;
+		};
+		CE9918692E7C476C005ADD05 /* MoviesDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoviesDomain;
+		};
+		CE99186B2E7C476C005ADD05 /* MoviesFavorites */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoviesFavorites;
+		};
+		CE99186D2E7C476C005ADD05 /* MoviesHome */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoviesHome;
+		};
+		CE99186F2E7C476C005ADD05 /* MoviesNavigation */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoviesNavigation;
+		};
+		CE9918712E7C476C005ADD05 /* MoviesNetwork */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoviesNetwork;
+		};
+		CE9918732E7C476C005ADD05 /* MoviesSearch */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoviesSearch;
+		};
+		CE9918752E7C476C005ADD05 /* SharedModels */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SharedModels;
+		};
+		CE9918772E7C476C005ADD05 /* AppLog */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppLog;
+		};
+		CE9918792E7C476C005ADD05 /* DateUtilities */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DateUtilities;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CE1FCD902E7C440B00983989 /* Project object */;
 }

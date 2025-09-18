@@ -1,0 +1,32 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "search.title" : {
+      "comment" : "Navigation title for the Search screen.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Search" } } }
+    },
+    "search.empty_title" : {
+      "comment" : "Empty state title when nothing searched.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Search Movies" } } }
+    },
+    "search.empty_description" : {
+      "comment" : "Empty state description when nothing searched.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Type to search for movies" } } }
+    },
+    "search.no_results_description" : {
+      "comment" : "Description when no results are found.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Try a different query or spelling." } } }
+    },
+    "search.error_title" : {
+      "comment" : "Error title shown when the Search screen fails to load content.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Search Error" } } }
+    },
+    "search.prompt" : {
+      "comment" : "Search field prompt displayed in the navigation bar.",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Search Movies" } } }
+    }
+  },
+  "version" : "1.0"
+}
+
+
