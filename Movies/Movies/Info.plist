@@ -5,7 +5,7 @@
 	<key>TMDBConfiguration</key>
 	<dict>
 		<key>TMDBAPIKey</key>
-		<string>abfabb9de9dc58bb436d38f97ce882bc</string>
+		<string>d6fceb32833f4a485a5a7e3b1f98115b</string>
 		<key>TMDBBaseURL</key>
 		<string>https://api.themoviedb.org</string>
 		<key>TMDBImageBaseURL</key>
