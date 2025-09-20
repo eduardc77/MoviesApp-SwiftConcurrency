@@ -50,3 +50,22 @@ public struct MovieDetails: Identifiable, Hashable, Equatable, Sendable {
         MovieDateFormatter.year(from: releaseDate)
     }
 }
+
+// Extension to convert MovieDetails to Movie for list display
+extension MovieDetails {
+    /// Converts detailed movie data to basic movie data for list/card display
+    public var asMovie: Movie {
+        Movie(
+            id: id,
+            title: title,
+            overview: overview,
+            posterPath: posterPath,
+            backdropPath: backdropPath,
+            releaseDate: releaseDate,
+            voteAverage: voteAverage,
+            voteCount: voteCount,
+            genres: genres,
+            popularity: 0 // MovieDetails doesn't have popularity, use 0
+        )
+    }
+}

@@ -5,7 +5,6 @@
 //  Created by User on 9/10/25.
 //
 
-import Foundation
 import Observation
 import MoviesDomain
 
@@ -57,56 +56,54 @@ public final class FavoritesViewModel {
     public func reload() { favoritesDidChange() }
 
     /// Called by the View when it detects changes via onChange
-    /// This allows the View to trigger reloads when the store's favorites change
+    /// This allows the View to trigger incremental updates when the store's favorites change
     public func favoritesDidChange() {
         let currentFavoriteIds = favoritesStore.favoriteMovieIds
 
         // If this is the first time or we have no items, do a full load
-        if items.isEmpty || previousFavoriteIds.isEmpty {
-            previousFavoriteIds = currentFavoriteIds
+        if items.isEmpty {
             load(reset: true)
             return
         }
 
-        // Detect changes
-        let addedIds = currentFavoriteIds.subtracting(previousFavoriteIds)
-        let removedIds = previousFavoriteIds.subtracting(currentFavoriteIds)
+        // Convert current items to Set for comparison
+        let currentItemIds = Set(items.map { $0.id })
 
-        // Update previous state
-        previousFavoriteIds = currentFavoriteIds
+        // Find what was actually added and removed
+        let addedIds = currentFavoriteIds.subtracting(currentItemIds)
+        let removedIds = currentItemIds.subtracting(currentFavoriteIds)
 
-        // Handle changes synchronously
-        if !addedIds.isEmpty {
-            handleAddedFavoritesSync(Array(addedIds))
-        }
-        if !removedIds.isEmpty {
-            handleRemovedFavoritesSync(Array(removedIds))
-        }
-
-        // If no changes, do nothing
+        // If nothing changed, ignore
         if addedIds.isEmpty && removedIds.isEmpty {
             return
         }
-    }
 
-    private func handleAddedFavoritesSync(_ addedIds: [Int]) {
-        // Fetch movie data synchronously and insert
-        for movieId in addedIds {
-            if let movie = fetchMovieSync(movieId: movieId) {
-                insertMovieInSortedOrder(movie)
+        // Remove movies that are no longer favorites
+        if !removedIds.isEmpty {
+            items.removeAll { removedIds.contains($0.id) }
+        }
+
+        // Add new favorites
+        if !addedIds.isEmpty {
+            for movieId in addedIds {
+                if let movie = fetchMovieSync(movieId: movieId) {
+                    // Insert in sorted order if we have sorting, otherwise add to beginning
+                    if sortOrder != nil {
+                        insertMovieInSortedOrder(movie)
+                    } else {
+                        items.insert(movie, at: 0)
+                    }
+                }
             }
         }
     }
 
-    private func handleRemovedFavoritesSync(_ removedIds: [Int]) {
-        // Remove movies from the array
-        items.removeAll { removedIds.contains($0.id) }
-    }
-
     private func fetchMovieSync(movieId: Int) -> Movie? {
-        // Get a single movie from the paginated results (page 1, size 1)
-        let movies = favoritesStore.getFavorites(page: 1, pageSize: 1, sortOrder: nil)
-        return movies.first { $0.id == movieId }
+        // Get the specific movie details by ID (this is the correct way)
+        guard let details = favoritesStore.getFavoriteDetails(movieId: movieId) else {
+            return nil
+        }
+        return details.asMovie
     }
 
     private func insertMovieInSortedOrder(_ movie: Movie) {

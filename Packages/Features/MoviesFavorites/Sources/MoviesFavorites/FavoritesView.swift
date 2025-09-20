@@ -56,7 +56,6 @@ public struct FavoritesView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.secondary.opacity(0.4))
         .navigationTitle(Text(.FavoritesL10n.title))
 #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
