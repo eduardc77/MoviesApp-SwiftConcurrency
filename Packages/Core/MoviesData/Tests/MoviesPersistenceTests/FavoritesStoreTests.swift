@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import Combine
 import MoviesDomain
 @testable import MoviesData
 
@@ -14,49 +13,70 @@ private final class LocalDataSourceMock: @unchecked Sendable, FavoritesLocalData
     var ids: Set<Int> = []
     var shouldFail = false
 
-    func getFavoriteMovieIds() -> AnyPublisher<Set<Int>, Error> {
-        Just(ids).setFailureType(to: Error.self).eraseToAnyPublisher()
+    func getFavoriteMovieIds() throws -> Set<Int> {
+        if shouldFail { throw NSError(domain: "test", code: -1, userInfo: nil) }
+        return ids
     }
 
-    func addToFavorites(movie: Movie) -> AnyPublisher<Void, Error> {
-        if shouldFail { return Fail(error: NSError(domain: "x", code: -1)).eraseToAnyPublisher() }
+    func addToFavorites(movie: Movie) throws {
+        if shouldFail { throw NSError(domain: "test", code: -1, userInfo: nil) }
         ids.insert(movie.id)
-        return Just(()).setFailureType(to: Error.self).eraseToAnyPublisher()
     }
 
-    func addToFavorites(details: MovieDetails) -> AnyPublisher<Void, Error> {
-        if shouldFail { return Fail(error: NSError(domain: "x", code: -1)).eraseToAnyPublisher() }
+    func addToFavorites(details: MovieDetails) throws {
+        if shouldFail { throw NSError(domain: "test", code: -1, userInfo: nil) }
         ids.insert(details.id)
-        return Just(()).setFailureType(to: Error.self).eraseToAnyPublisher()
     }
 
-    func removeFromFavorites(movieId: Int) -> AnyPublisher<Void, Error> {
-        if shouldFail { return Fail(error: NSError(domain: "x", code: -1)).eraseToAnyPublisher() }
+    func removeFromFavorites(movieId: Int) throws {
+        if shouldFail { throw NSError(domain: "test", code: -1, userInfo: nil) }
         ids.remove(movieId)
-        return Just(()).setFailureType(to: Error.self).eraseToAnyPublisher()
     }
 
-    func isFavorite(movieId: Int) -> AnyPublisher<Bool, Error> {
-        Just(ids.contains(movieId)).setFailureType(to: Error.self).eraseToAnyPublisher()
+    func isFavorite(movieId: Int) -> Bool {
+        if shouldFail { return false }
+        return ids.contains(movieId)
     }
 
-    func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) -> AnyPublisher<[Movie], Error> {
+    func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) throws -> [Movie] {
+        if shouldFail { throw NSError(domain: "test", code: -1, userInfo: nil) }
         let sortedIds = Array(ids).sorted()
         let start = max(page - 1, 0) * pageSize
         let end = min(start + pageSize, sortedIds.count)
         let slice = (start < end) ? Array(sortedIds[start..<end]) : []
-        let movies = slice.map { id in
+        return slice.map { id in
             Movie(id: id, title: "t\(id)", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 0, voteCount: 0, genres: [], popularity: 0)
         }
-        return Just(movies).setFailureType(to: Error.self).eraseToAnyPublisher()
     }
 
-    func getFavoriteDetails(movieId: Int) -> AnyPublisher<MovieDetails?, Error> {
+    func getFavoriteDetails(movieId: Int) -> MovieDetails? {
+        if shouldFail { return nil }
         if ids.contains(movieId) {
-            let details = MovieDetails(id: movieId, title: "t\(movieId)", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 0, voteCount: 0, runtime: 100, genres: [], tagline: nil)
-            return Just(details).setFailureType(to: Error.self).eraseToAnyPublisher()
+            return MovieDetails(id: movieId, title: "t\(movieId)", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 0, voteCount: 0, runtime: 100, genres: [], tagline: nil)
         }
-        return Just(nil).setFailureType(to: Error.self).eraseToAnyPublisher()
+        return nil
+    }
+
+    // Synchronous methods for incremental updates
+    func getFavoriteMovieSync(movieId: Int) -> Movie? {
+        if shouldFail { return nil }
+        if ids.contains(movieId) {
+            return Movie(id: movieId, title: "t\(movieId)", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 0, voteCount: 0, genres: [], popularity: 0)
+        }
+        return nil
+    }
+
+    func getFavoriteDetailsSync(movieId: Int) -> MovieDetails? {
+        if shouldFail { return nil }
+        if ids.contains(movieId) {
+            return MovieDetails(id: movieId, title: "t\(movieId)", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 0, voteCount: 0, runtime: 100, genres: [], tagline: nil)
+        }
+        return nil
+    }
+
+    func isFavoriteSync(movieId: Int) -> Bool {
+        if shouldFail { return false }
+        return ids.contains(movieId)
     }
 }
 

@@ -8,7 +8,6 @@
 import SharedModels
 import MoviesDomain
 import MoviesNetwork
-import Foundation
 
 /// Repository that bridges network DTOs to domain models
 /// Implements the data access layer for movie operations
@@ -19,35 +18,46 @@ public final class MovieRepository: MovieRepositoryProtocol {
         self.remoteDataSource = remoteDataSource
     }
 
-
     public func fetchMovies(type: MovieType) async throws -> [Movie] {
-        let dto = try await remoteDataSource.fetchMovies(type: type)
-        return DTOMapper.toDomain(dto.results)
+        let response = try await remoteDataSource.fetchMovies(type: type)
+        return DTOMapper.toDomain(response.results)
     }
 
     public func fetchMovies(type: MovieType, page: Int) async throws -> MoviePage {
         let response = try await remoteDataSource.fetchMovies(type: type, page: page)
-        return MoviePage(items: DTOMapper.toDomain(response.results), page: response.page, totalPages: response.totalPages)
+        return MoviePage(
+            items: DTOMapper.toDomain(response.results),
+            page: response.page,
+            totalPages: response.totalPages
+        )
     }
 
     public func fetchMovies(type: MovieType, page: Int, sortBy: MovieSortOrder?) async throws -> MoviePage {
         let response = try await remoteDataSource.fetchMovies(type: type, page: page, sortBy: sortBy?.tmdbSortValue)
-        return MoviePage(items: DTOMapper.toDomain(response.results), page: response.page, totalPages: response.totalPages)
+        return MoviePage(
+            items: DTOMapper.toDomain(response.results),
+            page: response.page,
+            totalPages: response.totalPages
+        )
     }
 
     public func searchMovies(query: String) async throws -> [Movie] {
-        let dto = try await remoteDataSource.searchMovies(query: query)
-        return DTOMapper.toDomain(dto.results)
+        let response = try await remoteDataSource.searchMovies(query: query)
+        return DTOMapper.toDomain(response.results)
     }
 
     public func searchMovies(query: String, page: Int) async throws -> MoviePage {
         let response = try await remoteDataSource.searchMovies(query: query, page: page)
-        return MoviePage(items: DTOMapper.toDomain(response.results), page: response.page, totalPages: response.totalPages)
+        return MoviePage(
+            items: DTOMapper.toDomain(response.results),
+            page: response.page,
+            totalPages: response.totalPages
+        )
     }
 
     public func fetchMovieDetails(id: Int) async throws -> MovieDetails {
-        let dto = try await remoteDataSource.fetchMovieDetails(id: id)
-        return DTOMapper.toDomain(dto)
+        let response = try await remoteDataSource.fetchMovieDetails(id: id)
+        return DTOMapper.toDomain(response)
     }
 }
 

@@ -6,18 +6,17 @@
 //
 
 import XCTest
-import Combine
 import SharedModels
 @testable import MoviesSearch
 @testable import MoviesDomain
 @testable import MoviesData
 
 private final class RepoMock: MovieRepositoryProtocol {
-    func fetchMovies(type: MovieType) -> AnyPublisher<[Movie], Error> { fatalError() }
-    func fetchMovies(type: MovieType, page: Int) -> AnyPublisher<MoviePage, Error> { fatalError() }
-    func fetchMovies(type: MovieType, page: Int, sortBy: MovieSortOrder?) -> AnyPublisher<MoviePage, Error> { fatalError() }
-    func searchMovies(query: String) -> AnyPublisher<[Movie], Error> { fatalError() }
-    func searchMovies(query: String, page: Int) -> AnyPublisher<MoviePage, Error> {
+    func fetchMovies(type: MovieType) async throws -> [Movie] { fatalError() }
+    func fetchMovies(type: MovieType, page: Int) async throws -> MoviePage { fatalError() }
+    func fetchMovies(type: MovieType, page: Int, sortBy: MovieSortOrder?) async throws -> MoviePage { fatalError() }
+    func searchMovies(query: String) async throws -> [Movie] { fatalError() }
+    func searchMovies(query: String, page: Int) async throws -> MoviePage {
         let mockMovies = (0..<5).map { index in
             let movieId = 200 + (page - 1) * 20 + index
             let title = "Search Page \(page) Result \(index + 1) for '\(query)'"
@@ -43,29 +42,26 @@ private final class RepoMock: MovieRepositoryProtocol {
             )
         }
         let mockPage = MoviePage(items: mockMovies, page: page, totalPages: 3)
-        return Just(mockPage).setFailureType(to: Error.self).eraseToAnyPublisher()
+        return mockPage
     }
-    func fetchMovieDetails(id: Int) -> AnyPublisher<MovieDetails, Error> { fatalError() }
+    func fetchMovieDetails(id: Int) async throws -> MovieDetails { fatalError() }
 }
 
 @MainActor
 final class SearchViewModelTests: XCTestCase {
-    func testSearchPaginatesAndGuardsMinLength() {
+    func testSearchPaginatesAndGuardsMinLength() async throws {
         let repo = RepoMock()
         let store = FavoritesStore()
         let vm = SearchViewModel(repository: repo, favoritesStore: store)
 
-        vm.search(reset: true, trigger: .submit) // query empty -> should no-op
-        RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+        await vm.search(reset: true, trigger: .submit) // query empty -> should no-op
         XCTAssertTrue(vm.items.isEmpty)
 
         vm.query = "abc"
-        vm.search(reset: true, trigger: .submit)
-        RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        await vm.search(reset: true, trigger: .submit)
         XCTAssertEqual(vm.items.count, 5)
 
-        vm.loadNextIfNeeded(currentItem: vm.items.last)
-        RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+        await vm.loadNextIfNeeded(currentItem: vm.items.last)
         XCTAssertGreaterThan(vm.items.count, 5)
     }
 }

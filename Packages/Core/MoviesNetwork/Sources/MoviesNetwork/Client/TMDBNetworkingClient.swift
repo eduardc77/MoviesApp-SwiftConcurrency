@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 import AppLog
 
 /// HTTP client for TMDB API operations
@@ -24,36 +23,51 @@ public final class TMDBNetworkingClient: TMDBNetworkingClientProtocol, Sendable 
         self.decoder.keyDecodingStrategy = .convertFromSnakeCase
     }
 
-
-    // MARK: - Network Request
     public func request<T: Decodable>(_ endpoint: EndpointProtocol) async throws -> T {
         guard let url = buildURL(for: endpoint) else {
             throw TMDBNetworkingError.invalidURL
         }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = endpoint.method.rawValue
-        request.httpBody = endpoint.body
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = endpoint.method.rawValue
+        urlRequest.httpBody = endpoint.body
 
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        // Set default headers
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        // Add endpoint-specific headers
         for (key, value) in endpoint.headers {
-            request.setValue(value, forHTTPHeaderField: key)
-        }
-
-        let (data, response) = try await session.data(for: request)
-
-        if let httpResponse = response as? HTTPURLResponse,
-           !(200...299).contains(httpResponse.statusCode) {
-            throw TMDBNetworkingError.httpError(httpResponse.statusCode)
+            urlRequest.setValue(value, forHTTPHeaderField: key)
         }
 
         do {
-            return try decoder.decode(T.self, from: data)
-        } catch let decodingError as DecodingError {
-            logDecodingFailure(decodingError, rawData: data, endpoint: endpoint)
-            throw TMDBNetworkingError.decodingError(decodingError)
+            let (data, response) = try await session.data(for: urlRequest)
+
+            if let httpResponse = response as? HTTPURLResponse,
+               !(200...299).contains(httpResponse.statusCode) {
+                throw TMDBNetworkingError.httpError(httpResponse.statusCode)
+            }
+
+            do {
+                return try decoder.decode(T.self, from: data)
+            } catch let decodingError as DecodingError {
+                // Log detailed decoding failure information
+                logDecodingFailure(decodingError, rawData: data, endpoint: endpoint)
+                throw TMDBNetworkingError.decodingError(decodingError)
+            } catch {
+                // Log other decoding errors
+                AppLog.network.error("Unexpected decoding error for \(endpoint.path): \(error.localizedDescription)")
+                throw TMDBNetworkingError.networkError(error)
+            }
+        } catch let error as TMDBNetworkingError {
+            throw error
         } catch {
-            AppLog.network.error("Unexpected decoding error for \(endpoint.path): \(error.localizedDescription)")
+            // Handle network errors and retry logic
+            if shouldRetry(error) {
+                AppLog.network.log("Retrying request after error: \(error.localizedDescription)")
+                try await Task.sleep(for: .seconds(1))
+                return try await request(endpoint)
+            }
             throw TMDBNetworkingError.networkError(error)
         }
     }
@@ -80,6 +94,32 @@ public final class TMDBNetworkingClient: TMDBNetworkingClientProtocol, Sendable 
         components.queryItems = queryItems
 
         return components.url
+    }
+
+    private func shouldRetry(_ error: Error) -> Bool {
+        switch error {
+        case let networkError as TMDBNetworkingError:
+            switch networkError {
+            case .networkError: return true   // Network connectivity issues
+            case .httpError(let code):
+                return (500...599).contains(code)  // Server errors (5xx)
+            case .invalidURL, .decodingError: return false  // Client errors, don't retry
+            }
+        case let urlError as URLError:
+            switch urlError.code {
+            case .timedOut,
+                    .cannotConnectToHost,
+                    .networkConnectionLost,
+                    .notConnectedToInternet,
+                    .cannotFindHost,
+                    .dnsLookupFailed:
+                return true  // Network connectivity issues that should be retried
+            default:
+                return false  // Other URL errors (400, 401, etc.) don't retry
+            }
+        default:
+            return false  // Unknown errors, don't retry
+        }
     }
 
     // MARK: - Logging Helpers

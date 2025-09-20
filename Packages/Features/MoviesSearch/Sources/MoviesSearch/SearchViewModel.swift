@@ -16,18 +16,20 @@ public final class SearchViewModel {
     public var isLoadingNext = false
     public var error: Error?
     public var query: String = "" {
-        didSet { onQueryChanged(query) }
+        didSet { handleQueryChange() }
     }
 
     @ObservationIgnored private var page = 1
     @ObservationIgnored private var totalPages = 1
-    @ObservationIgnored private var currentTask: Task<Void, Never>?
+    @ObservationIgnored private var currentSearchTask: Task<Void, Never>?
 
     @ObservationIgnored private let repository: MovieRepositoryProtocol
     @ObservationIgnored private let favoritesStore: FavoritesStoreProtocol
-    @ObservationIgnored private var debounceTask: Task<Void, Never>?
 
-    public enum Trigger { case debounce, submit }
+    public enum Trigger {
+        case debounce
+        case submit
+    }
 
     var isQueryShort: Bool {
         query.trimmingCharacters(in: .whitespacesAndNewlines).count < 3
@@ -36,6 +38,31 @@ public final class SearchViewModel {
     public init(repository: MovieRepositoryProtocol, favoritesStore: FavoritesStoreProtocol) {
         self.repository = repository
         self.favoritesStore = favoritesStore
+    }
+
+    private func handleQueryChange() {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Cancel previous search task
+        currentSearchTask?.cancel()
+
+        if trimmed.isEmpty {
+            cancelAndClear()
+            return
+        }
+
+        if trimmed.count >= 3 {
+            error = nil
+            isLoading = true // Show loading immediately
+
+            // Start new debounced search
+            currentSearchTask = Task {
+                try? await Task.sleep(for: .milliseconds(400))
+                if !Task.isCancelled && !isQueryShort {
+                    await search(reset: true, trigger: .debounce)
+                }
+            }
+        }
     }
 
     // MARK: - View State
@@ -65,10 +92,10 @@ public final class SearchViewModel {
     /// Async refresh method for pull-to-refresh
     public func refresh() async {
         guard !query.isEmpty else { return }
-        await performSearch(reset: true, trigger: .submit)
+        await search(reset: true, trigger: .submit)
     }
 
-    public func search(reset: Bool = true, trigger: Trigger) {
+    public func search(reset: Bool = true, trigger: Trigger) async {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             items = []
@@ -85,57 +112,42 @@ public final class SearchViewModel {
             isLoadingNext = true
         }
 
-        // cancel previous task
-        currentTask?.cancel()
-        let q = trimmed
-        currentTask = Task { @MainActor [weak self] in
-            guard let self = self else { return }
-            do {
-                let pageResult = try await self.repository.searchMovies(query: q, page: next)
-                if Task.isCancelled { return }
-                self.page = pageResult.page
-                self.totalPages = pageResult.totalPages
-                let existing = Set(self.items.map(\.id))
-                let newItems = pageResult.items.filter { !existing.contains($0.id) }
-                self.items.append(contentsOf: newItems)
-            } catch is CancellationError {
-                // ignore
-            } catch {
-                self.error = error
-            }
+        do {
+            let page = try await repository.searchMovies(query: trimmed, page: next)
+            self.page = page.page
+            self.totalPages = page.totalPages
+            // Prevent duplicates across pages for a single query
+            let existing = Set(self.items.map(\.id))
+            let newItems = page.items.filter { !existing.contains($0.id) }
+            self.items.append(contentsOf: newItems)
             self.isLoading = false
             self.isLoadingNext = false
-            self.currentTask = nil
+        } catch {
+            self.error = error
+            self.isLoading = false
+            self.isLoadingNext = false
         }
     }
 
     public var canLoadMore: Bool { page < totalPages }
 
     public func isFavorite(_ id: Int) -> Bool { favoritesStore.favoriteMovieIds.contains(id) }
+    
     public func toggleFavorite(_ id: Int) {
-        if favoritesStore.isFavorite(movieId: id) {
-            // Movie is favorited, so remove it
-            favoritesStore.removeFromFavorites(movieId: id)
-        } else if let movie = items.first(where: { $0.id == id }) {
-            // Movie is not favorited, so add it
-            favoritesStore.addToFavorites(movie: movie)
-        }
+        _ = favoritesStore.toggleFavorite(movieId: id, in: items)
     }
 
-    public func loadNextIfNeeded(currentItem: Movie?) {
+    public func loadNextIfNeeded(currentItem: Movie?) async {
         guard let id = currentItem?.id,
               let idx = items.firstIndex(where: { $0.id == id }),
               idx >= max(items.count - 3, 0) else { return }
-        search(reset: false, trigger: .submit)
+        await search(reset: false, trigger: .submit)
     }
 
     /// Resets state and manages loading status
     private func resetState(startLoading: Bool = false) {
-        // Cancel any in-flight task to prevent memory leaks
-        currentTask?.cancel()
-        currentTask = nil
-
-        // Reset all state
+        // Don't cancel the current task if we're being called from within it
+        // Just reset the state without cancelling
         isLoading = startLoading
         isLoadingNext = false
         error = nil
@@ -151,26 +163,9 @@ public final class SearchViewModel {
 
     /// Cancels ongoing requests and clears state (stops loading)
     private func cancelAndClear() {
+        // Cancel any in-flight search task when clearing
+        currentSearchTask?.cancel()
+        currentSearchTask = nil
         resetState(startLoading: false)
-    }
-
-    // MARK: - Debounce handling with Task
-    public func onQueryChanged(_ newValue: String) {
-        let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty { cancelAndClear(); return }
-        if trimmed.count < 3 { return }
-        // show loading immediately
-        isLoading = true
-        error = nil
-        debounceTask?.cancel()
-        debounceTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 400_000_000)
-            guard !Task.isCancelled else { return }
-            await self?.performSearch(reset: true, trigger: .debounce)
-        }
-    }
-
-    private func performSearch(reset: Bool, trigger: Trigger) async {
-        await MainActor.run { self.search(reset: reset, trigger: trigger) }
     }
 }

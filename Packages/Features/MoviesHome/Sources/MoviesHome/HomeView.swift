@@ -44,7 +44,9 @@ public struct HomeView: View {
                     Text(error.localizedDescription)
                 } actions: {
                     Button(String(localized: .DesignSystemL10n.retry)) {
-                        viewModel.load(reset: true)
+                        Task {
+                            await viewModel.load(reset: true)
+                        }
                     }
                     .tint(.primary)
                     .buttonStyle(.bordered)
@@ -65,7 +67,11 @@ public struct HomeView: View {
                             onTap: { appRouter.navigateToMovieDetails(movieId: $0.id) },
                             onFavoriteToggle: { viewModel.toggleFavorite($0.id) },
                             isFavorite: { viewModel.isFavorite($0.id) },
-                            onLoadNext: { viewModel.load(reset: false) },
+                            onLoadNext: {
+                                Task {
+                                    await viewModel.loadNextIfNeeded(currentItem: viewModel.items.last)
+                                }
+                            },
                             showLoadingOverlay: viewModel.isLoadingNext,
                             onRefresh: { await viewModel.refresh() }
                         )
@@ -90,20 +96,24 @@ public struct HomeView: View {
             },
             currentSortOption: viewModel.sortOrder
         ) { order in
-            viewModel.setSortOrder(order)
+            Task {
+                await viewModel.setSortOrder(order)
+            }
         }
-        .onAppear {
+        .task {
             if viewModel.items.isEmpty {
                 viewModel.category = .nowPlaying
-                viewModel.load(reset: true)
+                await viewModel.load(reset: true)
             }
         }
         .onChange(of: selectedTab) { _, newTab in
-            switch newTab {
-            case .nowPlaying: viewModel.setCategory(.nowPlaying)
-            case .popular: viewModel.setCategory(.popular)
-            case .topRated: viewModel.setCategory(.topRated)
-            case .upcoming: viewModel.setCategory(.upcoming)
+            Task {
+                switch newTab {
+                case .nowPlaying: await viewModel.setCategory(.nowPlaying)
+                case .popular: await viewModel.setCategory(.popular)
+                case .topRated: await viewModel.setCategory(.topRated)
+                case .upcoming: await viewModel.setCategory(.upcoming)
+                }
             }
         }
     }

@@ -179,7 +179,9 @@ private extension MovieDetailView {
             Text(String(localized: .DesignSystemL10n.none)) // or a dedicated details message if you add one
         } actions: {
             Button(String(localized: .DesignSystemL10n.retry)) {
-                viewModel.fetch()
+                Task {
+                    await viewModel.fetch()
+                }
             }
             .tint(.primary)
             .buttonStyle(.bordered)

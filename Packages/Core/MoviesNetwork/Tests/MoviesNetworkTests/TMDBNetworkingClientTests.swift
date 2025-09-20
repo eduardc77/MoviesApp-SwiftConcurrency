@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import Combine
 @testable import MoviesNetwork
 
 private final class URLProtocolStub: URLProtocol {
@@ -51,11 +50,8 @@ private struct TestEndpoint: EndpointProtocol {
 }
 
 final class TMDBNetworkingClientTests: XCTestCase {
-    private var cancellables = Set<AnyCancellable>()
-
     override func tearDown() {
         URLProtocolStub.requestHandler = nil
-        cancellables.removeAll()
         super.tearDown()
     }
 
@@ -77,7 +73,7 @@ final class TMDBNetworkingClientTests: XCTestCase {
         return TMDBNetworkingClient(session: session, networkingConfig: networkingConfig)
     }
 
-    func test_buildsURL_withPathQueryAndApiKey() throws {
+    func test_buildsURL_withPathQueryAndApiKey() async throws {
         try skipIfUnsupported()
         let exp = expectation(description: "request sent")
         URLProtocolStub.requestHandler = { request in
@@ -94,16 +90,14 @@ final class TMDBNetworkingClientTests: XCTestCase {
         let client = makeClient()
         let endpoint = TestEndpoint(path: "movie/123", queryParameters: [URLQueryItem(name: "q", value: "a")])
 
-        client.request(endpoint)
-            .sink(receiveCompletion: { _ in }, receiveValue: { (value: DummyDecodable) in })
-            .store(in: &cancellables)
+        // Make async request
+        let _: DummyDecodable = try await client.request(endpoint)
 
-        wait(for: [exp], timeout: 1.0)
+        await fulfillment(of: [exp], timeout: 1.0)
     }
 
-    func test_mapsNon2xxToHttpError() throws {
+    func test_mapsNon2xxToHttpError() async throws {
         try skipIfUnsupported()
-        let exp = expectation(description: "error mapped")
         URLProtocolStub.requestHandler = { request in
             return .init(statusCode: 404, headers: [:], body: Data("{}".utf8))
         }
@@ -111,22 +105,20 @@ final class TMDBNetworkingClientTests: XCTestCase {
         let client = makeClient()
         let endpoint = TestEndpoint(path: "movie/404", queryParameters: [])
 
-        client.request(endpoint)
-            .sink(receiveCompletion: { completion in
-                if case .failure(let error) = completion, let e = error as? TMDBNetworkingError {
-                    if case .httpError(404) = e { exp.fulfill() }
-                }
-            }, receiveValue: { (value: DummyDecodable) in
-                XCTFail("should not succeed")
-            })
-            .store(in: &cancellables)
-
-        wait(for: [exp], timeout: 1.0)
+        do {
+            let _: DummyDecodable = try await client.request(endpoint)
+            XCTFail("should not succeed")
+        } catch let error as TMDBNetworkingError {
+            if case .httpError(404) = error {
+                // Success - error was mapped correctly
+            } else {
+                XCTFail("Wrong error type: \(error)")
+            }
+        }
     }
 
-    func test_decodesValidPayload() throws {
+    func test_decodesValidPayload() async throws {
         try skipIfUnsupported()
-        let exp = expectation(description: "decoded")
         URLProtocolStub.requestHandler = { _ in
             let body = try JSONEncoder().encode(DummyDecodable(ok: true))
             return .init(statusCode: 200, headers: ["Content-Type": "application/json"], body: body)
@@ -135,16 +127,8 @@ final class TMDBNetworkingClientTests: XCTestCase {
         let client = makeClient()
         let endpoint = TestEndpoint(path: "ok", queryParameters: [])
 
-        client.request(endpoint)
-            .sink(receiveCompletion: { completion in
-                if case .failure(let error) = completion { XCTFail("\(error)") }
-            }, receiveValue: { (value: DummyDecodable) in
-                XCTAssertEqual(value, DummyDecodable(ok: true))
-                exp.fulfill()
-            })
-            .store(in: &cancellables)
-
-        wait(for: [exp], timeout: 1.0)
+        let value: DummyDecodable = try await client.request(endpoint)
+        XCTAssertEqual(value, DummyDecodable(ok: true))
     }
 }
 

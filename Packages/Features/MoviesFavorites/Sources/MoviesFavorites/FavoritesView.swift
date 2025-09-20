@@ -15,6 +15,7 @@ import MoviesNavigation
 public struct FavoritesView: View {
     @Environment(AppRouter.self) private var appRouter
     @State private var viewModel: FavoritesViewModel
+    @State private var shouldScrollToTop = false
 
     public init(repository: MovieRepositoryProtocol, favoriteStore: FavoritesStoreProtocol) {
         _viewModel = State(initialValue: FavoritesViewModel(repository: repository, favoritesStore: favoriteStore))
@@ -50,7 +51,8 @@ public struct FavoritesView: View {
                              isFavorite: { item in viewModel.isFavorite(item.id) },
                              onLoadNext: { viewModel.loadNextIfNeeded(currentItem: viewModel.items.last) },
                              showLoadingOverlay: viewModel.isLoadingNext,
-                             onRefresh: { await viewModel.refresh() })
+                             onRefresh: { await viewModel.refresh() },
+                             shouldScrollToTop: $shouldScrollToTop)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -68,6 +70,7 @@ public struct FavoritesView: View {
             currentSortOption: viewModel.sortOrder
         ) { order in
             viewModel.setSortOrder(order)
+            shouldScrollToTop = true
         }
         .task(id: viewModel.favoritesStore.favoriteMovieIds) {
             viewModel.favoritesDidChange()

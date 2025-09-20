@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import Combine
 @testable import MoviesNetwork
 
 private final class URLProtocolStub_DecodeErr: URLProtocol {
@@ -34,7 +33,6 @@ private struct Dummy: Codable { let ok: Bool }
 private struct TestEndpoint: EndpointProtocol { let path: String; var queryParameters: [URLQueryItem] }
 
 final class TMDBNetworkingClientDecodingErrorTests: XCTestCase {
-    private var cancellables = Set<AnyCancellable>()
 
     private func makeClient() -> TMDBNetworkingClient {
         let config = URLSessionConfiguration.ephemeral
@@ -48,23 +46,20 @@ final class TMDBNetworkingClientDecodingErrorTests: XCTestCase {
         return TMDBNetworkingClient(session: session, networkingConfig: networkingConfig)
     }
 
-    func test_invalidJSON_emitsFailure() {
-        let exp = expectation(description: "decoding failed")
+    func test_invalidJSON_emitsFailure() async throws {
         URLProtocolStub_DecodeErr.requestHandler = { _ in
             let bad = Data("{not json}".utf8)
             return .init(statusCode: 200, headers: ["Content-Type": "application/json"], body: bad)
         }
         let client = makeClient()
         let endpoint = TestEndpoint(path: "movie/1", queryParameters: [])
-        client.request(endpoint)
-            .sink(receiveCompletion: { c in
-                if case .failure = c { exp.fulfill() }
-            }, receiveValue: { (_: Dummy) in
-                XCTFail("should not decode")
-            })
-            .store(in: &cancellables)
 
-        wait(for: [exp], timeout: 1.0)
+        do {
+            let _: Dummy = try await client.request(endpoint)
+            XCTFail("should not decode")
+        } catch {
+            // Expected decoding error - test passes
+        }
     }
 }
 

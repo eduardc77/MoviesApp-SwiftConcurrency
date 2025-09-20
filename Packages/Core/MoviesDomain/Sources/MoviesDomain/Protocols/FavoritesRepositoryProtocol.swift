@@ -5,28 +5,26 @@
 //  Created by User on 9/14/25.
 //
 
-import Foundation
-
 /// Protocol for managing favorite movies
-public protocol FavoritesRepositoryProtocol: Sendable {
+public protocol FavoritesRepositoryProtocol {
     /// Gets all favorite movie IDs
-    func getFavoriteMovieIds() async throws -> Set<Int>
+    func getFavoriteMovieIds() throws -> Set<Int>
 
     /// Checks if a movie is favorited
-    func isMovieFavorited(movieId: Int) async throws -> Bool
+    func isMovieFavorited(movieId: Int) -> Bool
 
     /// Removes favorite by id
-    func removeFromFavorites(movieId: Int) async throws
+    func removeFromFavorites(movieId: Int) throws
 
     /// Adds a snapshot of a Movie to favorites
-    func addToFavorites(movie: Movie) async throws
+    func addToFavorites(movie: Movie) throws
 
     /// Adds a snapshot of MovieDetails to favorites
-    func addToFavorites(details: MovieDetails) async throws
+    func addToFavorites(details: MovieDetails) throws
 
     /// Fetch a page of favorited movies from local storage
-    func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) async throws -> [Movie]
+    func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) throws -> [Movie]
 
     /// Fetch locally stored favorite details snapshot if available
-    func getFavoriteDetails(movieId: Int) async throws -> MovieDetails?
+    func getFavoriteDetails(movieId: Int) -> MovieDetails?
 }

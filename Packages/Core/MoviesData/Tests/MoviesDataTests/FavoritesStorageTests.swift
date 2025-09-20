@@ -6,155 +6,143 @@
 //
 
 import XCTest
-import Combine
 import SwiftData
 @testable import MoviesData
 import MoviesDomain
 
 final class FavoritesStorageTests: XCTestCase {
 
-    @MainActor
+    // MARK: - Test Setup
+
+    private var sut: FavoritesLocalDataSource!
+    private var container: ModelContainer!
+
+    override func setUp() {
+        super.setUp()
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        container = try! ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: config)
+        sut = FavoritesLocalDataSource(container: container)
+    }
+
+    override func tearDown() {
+        sut = nil
+        container = nil
+        super.tearDown()
+    }
+
+    // MARK: - Tests
+
     func testGetFavoriteMovieIdsEmpty() {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: config)
-        let sut = FavoritesLocalDataSource(container: container)
-        var cancellables = Set<AnyCancellable>()
-        let exp = expectation(description: "empty")
-        sut.getFavoriteMovieIds()
-            .sink(receiveCompletion: { _ in }, receiveValue: { ids in
-                XCTAssertTrue(ids.isEmpty)
-                exp.fulfill()
-            })
-            .store(in: &cancellables)
-        wait(for: [exp], timeout: 1)
+        do {
+            let ids = try sut.getFavoriteMovieIds()
+            XCTAssertTrue(ids.isEmpty)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
     }
 
-    @MainActor
     func testAddAndRemoveFavorites() {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: config)
-        let sut = FavoritesLocalDataSource(container: container)
-        var cancellables = Set<AnyCancellable>()
-        let add1 = expectation(description: "add1")
-        sut.addToFavorites(movie: Movie(id: 1, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
-            .sink(receiveCompletion: { _ in add1.fulfill() }, receiveValue: { _ in })
-            .store(in: &cancellables)
-        wait(for: [add1], timeout: 1)
+        do {
+            // Add first movie
+            try sut.addToFavorites(movie: Movie(id: 1, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
 
-        let add2 = expectation(description: "add2")
-        sut.addToFavorites(movie: Movie(id: 2, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
-            .sink(receiveCompletion: { _ in add2.fulfill() }, receiveValue: { _ in })
-            .store(in: &cancellables)
-        wait(for: [add2], timeout: 1)
+            // Add second movie
+            try sut.addToFavorites(movie: Movie(id: 2, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
 
-        let isFav = expectation(description: "isFav")
-        sut.isFavorite(movieId: 1)
-            .sink(receiveCompletion: { _ in }, receiveValue: { value in
-                XCTAssertTrue(value)
-                isFav.fulfill()
-            })
-            .store(in: &cancellables)
-        wait(for: [isFav], timeout: 1)
+            // Check first movie is favorited
+            XCTAssertTrue(sut.isFavorite(movieId: 1))
 
-        let remove = expectation(description: "remove")
-        sut.removeFromFavorites(movieId: 1)
-            .sink(receiveCompletion: { _ in remove.fulfill() }, receiveValue: { _ in })
-            .store(in: &cancellables)
-        wait(for: [remove], timeout: 1)
+            // Check second movie is favorited
+            XCTAssertTrue(sut.isFavorite(movieId: 2))
+
+            // Remove first movie
+            try sut.removeFromFavorites(movieId: 1)
+
+            // Verify first is no longer favorited
+            XCTAssertFalse(sut.isFavorite(movieId: 1))
+
+            // Verify second is still favorited
+            XCTAssertTrue(sut.isFavorite(movieId: 2))
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
     }
 
-    @MainActor
     func testDuplicateAddToFavoritesKeepsSingleEntry() {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: config)
-        let sut = FavoritesLocalDataSource(container: container)
-        var cancellables = Set<AnyCancellable>()
-        let add1 = expectation(description: "add1")
-        sut.addToFavorites(movie: Movie(id: 1, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
-            .sink(receiveCompletion: { _ in add1.fulfill() }, receiveValue: { _ in })
-            .store(in: &cancellables)
-        wait(for: [add1], timeout: 1)
+        do {
+            // Add same movie twice
+            try sut.addToFavorites(movie: Movie(id: 1, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
+            try sut.addToFavorites(movie: Movie(id: 1, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
 
-        let add2 = expectation(description: "add2")
-        sut.addToFavorites(movie: Movie(id: 1, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
-            .sink(receiveCompletion: { _ in add2.fulfill() }, receiveValue: { _ in })
-            .store(in: &cancellables)
-        wait(for: [add2], timeout: 1)
-
-        let idsExp = expectation(description: "ids")
-        sut.getFavoriteMovieIds()
-            .sink(receiveCompletion: { _ in }, receiveValue: { ids in
-                XCTAssertEqual(ids.count, 1)
-                XCTAssertTrue(ids.contains(1))
-                idsExp.fulfill()
-            })
-            .store(in: &cancellables)
-        wait(for: [idsExp], timeout: 1)
+            // Verify only one entry exists
+            let ids = try sut.getFavoriteMovieIds()
+            XCTAssertEqual(ids.count, 1)
+            XCTAssertTrue(ids.contains(1))
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
     }
 
-    @MainActor
     func testConcurrentOpsNoDeadlock() {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: config)
-        let sut = FavoritesLocalDataSource(container: container)
-        var cancellables = Set<AnyCancellable>()
-        // Just verify that multiple operations complete successfully
-        let expectation = self.expectation(description: "Multiple operations complete")
+        do {
+            // Just verify that multiple operations complete successfully
+            let totalOperations = 5
 
-        var completedCount = 0
-        let totalOperations = 5
+            // Add multiple movies synchronously
+            for i in 0..<totalOperations {
+                try sut.addToFavorites(movie: Movie(id: i, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
+            }
 
-        for i in 0..<totalOperations {
-            sut.addToFavorites(movie: Movie(id: i, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0)).sink(receiveCompletion: { _ in
-                completedCount += 1
-                if completedCount == totalOperations {
-                    expectation.fulfill()
-                }
-            }, receiveValue: { _ in })
-            .store(in: &cancellables)
+            // Verify all movies were added
+            let ids = try sut.getFavoriteMovieIds()
+            XCTAssertEqual(ids.count, totalOperations)
+
+            for i in 0..<totalOperations {
+                XCTAssertTrue(ids.contains(i))
+                XCTAssertTrue(sut.isFavorite(movieId: i))
+            }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
-
-        wait(for: [expectation], timeout: 3.0)
-        XCTAssertEqual(completedCount, totalOperations)
     }
 
-    @MainActor
-    func testMemoryLeakPreventionSubscriptionCleanup() {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: config)
-        let sut = FavoritesLocalDataSource(container: container)
-        var cancellables = Set<AnyCancellable>()
-        // Critical test: Verify Combine subscriptions don't cause memory leaks
-        weak var weakStorage: FavoritesLocalDataSource? = sut
+    func testLargeDatasetOperations() {
+        do {
+            // Test with a larger dataset to ensure performance
+            let totalMovies = 100
 
-        autoreleasepool {
-            // Create a subscription and immediately cancel it
-            let cancellable = sut.getFavoriteMovieIds()
-                .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+            // Add many movies
+            for i in 0..<totalMovies {
+                try sut.addToFavorites(movie: Movie(id: i, title: "t\(i)", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
+            }
 
-            // Store it in cancellables set
-            cancellable.store(in: &cancellables)
+            // Verify all were added
+            let ids = try sut.getFavoriteMovieIds()
+            XCTAssertEqual(ids.count, totalMovies)
 
-            // Remove the cancellable (simulating view deallocation)
-            cancellables.removeAll()
+            // Test getFavorites with different parameters
+            let allMovies = try sut.getFavorites(page: 1, pageSize: 50, sortOrder: nil)
+            XCTAssertEqual(allMovies.count, 50)
+
+            // Test pagination
+            let page2Movies = try sut.getFavorites(page: 2, pageSize: 50, sortOrder: nil)
+            XCTAssertEqual(page2Movies.count, 50)
+
+            // Remove half the movies
+            for i in 0..<50 {
+                try sut.removeFromFavorites(movieId: i)
+            }
+
+            // Verify removals
+            let remainingIds = try sut.getFavoriteMovieIds()
+            XCTAssertEqual(remainingIds.count, 50)
+
+            // Verify remaining movies are still there
+            for i in 50..<totalMovies {
+                XCTAssertTrue(sut.isFavorite(movieId: i))
+            }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
-
-        // Force garbage collection by creating memory pressure
-        for _ in 0..<1000 {
-            _ = NSObject()
-        }
-
-        // Verify the storage is still alive (not leaked)
-        // This ensures we haven't created any strong reference cycles
-        XCTAssertNotNil(weakStorage, "FavoritesStorage should not be deallocated")
-
-        // Verify storage is still functional after subscription cleanup
-        let expectation = self.expectation(description: "Storage still works")
-        sut.addToFavorites(movie: Movie(id: 999, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
-            .sink(receiveCompletion: { _ in
-                expectation.fulfill()
-            }, receiveValue: { _ in })
-            .store(in: &cancellables)
-        wait(for: [expectation], timeout: 2.0)
     }
 }

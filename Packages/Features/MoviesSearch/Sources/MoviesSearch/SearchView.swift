@@ -38,7 +38,9 @@ public struct SearchView: View {
                 } actions: {
                     Button(String(localized: .DesignSystemL10n.retry)) {
                         if !viewModel.query.isEmpty {
-                            viewModel.search(reset: true, trigger: .submit)
+                            Task {
+                                await viewModel.search(reset: true, trigger: .submit)
+                            }
                         }
                     }
                     .tint(.primary)
@@ -55,7 +57,11 @@ public struct SearchView: View {
                              onTap: { item in appRouter.navigateToMovieDetails(movieId: item.id) },
                              onFavoriteToggle: { item in viewModel.toggleFavorite(item.id) },
                              isFavorite: { item in viewModel.isFavorite(item.id) },
-                             onLoadNext: { viewModel.search(reset: false, trigger: .submit) },
+                             onLoadNext: {
+                                 Task {
+                                     await viewModel.search(reset: false, trigger: .submit)
+                                 }
+                             },
                              showLoadingOverlay: viewModel.isLoadingNext,
                              onRefresh: { await viewModel.refresh() })
             }
@@ -69,7 +75,9 @@ public struct SearchView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.secondary.opacity(0.4))
         .onSubmit(of: .search) {
-            viewModel.search(reset: true, trigger: .submit)
+            Task {
+                await viewModel.search(reset: true, trigger: .submit)
+            }
         }
         #endif
     }

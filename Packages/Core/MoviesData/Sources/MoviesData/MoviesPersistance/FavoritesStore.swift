@@ -16,47 +16,38 @@ public final class FavoritesStore {
     @ObservationIgnored private let repository: FavoritesRepositoryProtocol
     /// Reactive set of favorite movie IDs
     public var favoriteMovieIds: Set<Int> = []
-    @ObservationIgnored private var currentTask: Task<Void, Never>?
 
-    /// Initialize with async loading
+    /// Initialize with synchronous loading
     public init(favoritesLocalDataSource: FavoritesLocalDataSourceProtocol = FavoritesLocalDataSource()) {
         self.repository = FavoritesRepository(localDataSource: favoritesLocalDataSource)
         loadFavorites()
     }
 
-    /// Load favorites from storage using async/await
+    /// Load favorites from storage synchronously
     private func loadFavorites() {
-        currentTask?.cancel()
-        currentTask = Task { [weak self] in
-            guard let self = self else { return }
-            do {
-                let ids = try await self.repository.getFavoriteMovieIds()
-                if Task.isCancelled { return }
-                self.favoriteMovieIds = ids
-            } catch {
-                AppLog.persistence.error("Failed to load favorites: \(String(describing: error))")
-            }
-            self.currentTask = nil
+        do {
+            let favorites = try repository.getFavoriteMovieIds()
+            self.favoriteMovieIds = favorites
+        } catch {
+            AppLog.persistence.error("Failed to load favorites: \(String(describing: error))")
         }
     }
 
     /// Remove favorite by id
     private func removeFavorite(for movieId: Int) {
         guard favoriteMovieIds.contains(movieId) else { return }
-        favoriteMovieIds.remove(movieId)
-        Task { [weak self] in
-            guard let self = self else { return }
-            do {
-                try await self.repository.removeFromFavorites(movieId: movieId)
-            } catch {
-                self.favoriteMovieIds.insert(movieId)
-            }
-        }
-    }
 
-    /// Check if movie is favorited
-    private func isFavorite(movieId: Int) async throws -> Bool {
-        try await repository.isMovieFavorited(movieId: movieId)
+        // Optimistic update - remove from UI immediately
+        favoriteMovieIds.remove(movieId)
+
+        // Try to persist the change
+        do {
+            try repository.removeFromFavorites(movieId: movieId)
+        } catch {
+            // Rollback on failure - add back to UI
+            favoriteMovieIds.insert(movieId)
+            AppLog.persistence.error("Failed to remove favorite \(movieId): \(error)")
+        }
     }
 }
 
@@ -65,34 +56,82 @@ extension FavoritesStore: FavoritesStoreProtocol {
     public func isFavorite(movieId: Int) -> Bool { favoriteMovieIds.contains(movieId) }
     public func removeFromFavorites(movieId: Int) { removeFavorite(for: movieId) }
     public func addToFavorites(movie: Movie) {
-        Task { [weak self] in
-            guard let self = self else { return }
-            do {
-                try await self.repository.addToFavorites(movie: movie)
-                self.favoriteMovieIds.insert(movie.id)
-            } catch {
-                AppLog.persistence.error("Failed to add favorite snapshot: \(error)")
-            }
+        // Optimistic update - add to UI immediately
+        favoriteMovieIds.insert(movie.id)
+
+        // Try to persist the change
+        do {
+            try repository.addToFavorites(movie: movie)
+        } catch {
+            // Rollback on failure - remove from UI
+            favoriteMovieIds.remove(movie.id)
+            AppLog.persistence.error("Failed to add favorite \(movie.id): \(error)")
         }
     }
 
     public func addToFavorites(details: MovieDetails) {
-        Task { [weak self] in
-            guard let self = self else { return }
-            do {
-                try await self.repository.addToFavorites(details: details)
-                self.favoriteMovieIds.insert(details.id)
-            } catch {
-                AppLog.persistence.error("Failed to add favorite snapshot: \(error)")
-            }
+        // Optimistic update - add to UI immediately
+        favoriteMovieIds.insert(details.id)
+
+        // Try to persist the change
+        do {
+            try repository.addToFavorites(details: details)
+        } catch {
+            // Rollback on failure - remove from UI
+            favoriteMovieIds.remove(details.id)
+            AppLog.persistence.error("Failed to add favorite \(details.id): \(error)")
         }
     }
 
-    public func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) async throws -> [Movie] {
-        try await repository.getFavorites(page: page, pageSize: pageSize, sortOrder: sortOrder)
+    public func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) -> [Movie] {
+        do {
+            return try repository.getFavorites(page: page, pageSize: pageSize, sortOrder: sortOrder)
+        } catch {
+            AppLog.persistence.error("Failed to get favorites: \(error)")
+            return []
+        }
     }
 
-    public func getFavoriteDetails(movieId: Int) async throws -> MovieDetails? {
-        try await repository.getFavoriteDetails(movieId: movieId)
+    public func getFavoriteDetails(movieId: Int) -> MovieDetails? {
+        repository.getFavoriteDetails(movieId: movieId)
+    }
+
+    /// Toggle favorite status for a movie in a collection
+    /// - Parameters:
+    ///   - movieId: The ID of the movie to toggle
+    ///   - items: Array of movies to find the movie data
+    /// - Returns: The new favorite status (true = now favorited, false = now unfavorited)
+    public func toggleFavorite(movieId: Int, in items: [Movie]) -> Bool {
+        if isFavorite(movieId: movieId) {
+            // Currently favorited, so remove it
+            removeFromFavorites(movieId: movieId)
+            return false  // Now unfavorited
+        } else if let movie = items.first(where: { $0.id == movieId }) {
+            // Not favorited, so add it
+            addToFavorites(movie: movie)
+            return true   // Now favorited
+        }
+        // Movie not found in items, return current status
+        return isFavorite(movieId: movieId)
+    }
+
+
+    /// Toggle favorite status for movie details
+    /// - Parameters:
+    ///   - movieId: The ID of the movie to toggle
+    ///   - movieDetails: The movie details data
+    /// - Returns: The new favorite status
+    public func toggleFavorite(movieId: Int, movieDetails: MovieDetails?) -> Bool {
+        if isFavorite(movieId: movieId) {
+            // Currently favorited, so remove it
+            removeFromFavorites(movieId: movieId)
+            return false  // Now unfavorited
+        } else if let details = movieDetails {
+            // Not favorited, so add it
+            addToFavorites(details: details)
+            return true   // Now favorited
+        }
+        // No details provided, return current status
+        return isFavorite(movieId: movieId)
     }
 }

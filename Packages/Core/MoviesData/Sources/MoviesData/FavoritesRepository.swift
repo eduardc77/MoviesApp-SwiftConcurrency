@@ -8,7 +8,7 @@
 import Foundation
 import MoviesDomain
 
-/// Adapter that exposes a Combine repository API backed by a local storage
+/// Repository for favorite movies (synchronous operations)
 public final class FavoritesRepository: FavoritesRepositoryProtocol {
     private let localDataSource: FavoritesLocalDataSourceProtocol
 
@@ -16,31 +16,31 @@ public final class FavoritesRepository: FavoritesRepositoryProtocol {
         self.localDataSource = localDataSource
     }
 
-    public func getFavoriteMovieIds() async throws -> Set<Int> {
-        try await localDataSource.getFavoriteMovieIds()
+    public func getFavoriteMovieIds() throws -> Set<Int> {
+        try localDataSource.getFavoriteMovieIds()
     }
 
-    public func isMovieFavorited(movieId: Int) async throws -> Bool {
-        try await localDataSource.isFavorite(movieId: movieId)
+    public func isMovieFavorited(movieId: Int) -> Bool {
+        localDataSource.isFavorite(movieId: movieId)
     }
 
-    public func removeFromFavorites(movieId: Int) async throws {
-        try await localDataSource.removeFromFavorites(movieId: movieId)
+    public func removeFromFavorites(movieId: Int) throws {
+        try localDataSource.removeFromFavorites(movieId: movieId)
     }
 
-    public func addToFavorites(movie: Movie) async throws {
-        try await localDataSource.addToFavorites(movie: movie)
+    public func addToFavorites(movie: Movie) throws {
+        try localDataSource.addToFavorites(movie: movie)
     }
 
-    public func addToFavorites(details: MovieDetails) async throws {
-        try await localDataSource.addToFavorites(details: details)
+    public func addToFavorites(details: MovieDetails) throws {
+        try localDataSource.addToFavorites(details: details)
     }
 
-    public func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) async throws -> [Movie] {
-        try await localDataSource.getFavorites(page: page, pageSize: pageSize, sortOrder: sortOrder)
+    public func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) throws -> [Movie] {
+        try localDataSource.getFavorites(page: page, pageSize: pageSize, sortOrder: sortOrder)
     }
 
-    public func getFavoriteDetails(movieId: Int) async throws -> MovieDetails? {
-        try await localDataSource.getFavoriteDetails(movieId: movieId)
+    public func getFavoriteDetails(movieId: Int) -> MovieDetails? {
+        localDataSource.getFavoriteDetails(movieId: movieId)
     }
 }

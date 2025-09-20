@@ -20,8 +20,11 @@ public protocol FavoritesStoreProtocol: Sendable {
     // Remove favorite by id
     func removeFromFavorites(movieId: Int)
     // Local paging fetch for favorites
-    func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) async throws -> [Movie]
+    func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) -> [Movie]
 
     /// Fetch locally stored favorite details snapshot if available
-    func getFavoriteDetails(movieId: Int) async throws -> MovieDetails?
+    func getFavoriteDetails(movieId: Int) -> MovieDetails?
+
+    func toggleFavorite(movieId: Int, in items: [Movie]) -> Bool
+    func toggleFavorite(movieId: Int, movieDetails: MovieDetails?) -> Bool
 }
