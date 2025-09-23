@@ -122,6 +122,10 @@ public final class SearchViewModel {
             self.items.append(contentsOf: newItems)
             self.isLoading = false
             self.isLoadingNext = false
+        } catch is CancellationError {
+            // Ignore cancellations triggered by new input; just stop loading
+            self.isLoading = false
+            self.isLoadingNext = false
         } catch {
             self.error = error
             self.isLoading = false

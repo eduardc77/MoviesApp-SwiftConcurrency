@@ -7,6 +7,7 @@
 
 import XCTest
 import SharedModels
+import SwiftData
 @testable import MoviesSearch
 @testable import MoviesDomain
 @testable import MoviesData
@@ -51,14 +52,15 @@ private final class RepoMock: MovieRepositoryProtocol {
 final class SearchViewModelTests: XCTestCase {
     func testSearchPaginatesAndGuardsMinLength() async throws {
         let repo = RepoMock()
-        let store = FavoritesStore()
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: FavoritesLocalDataSource(container: container), container: container)
         let vm = SearchViewModel(repository: repo, favoritesStore: store)
 
-        await vm.search(reset: true, trigger: .submit) // query empty -> should no-op
+        await vm.search(reset: true, trigger: SearchViewModel.Trigger.submit) // query empty -> should no-op
         XCTAssertTrue(vm.items.isEmpty)
 
         vm.query = "abc"
-        await vm.search(reset: true, trigger: .submit)
+        await vm.search(reset: true, trigger: SearchViewModel.Trigger.submit)
         XCTAssertEqual(vm.items.count, 5)
 
         await vm.loadNextIfNeeded(currentItem: vm.items.last)

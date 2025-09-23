@@ -8,6 +8,8 @@
 import Foundation
 import MoviesDomain
 import AppLog
+import SwiftData
+ 
 
 @MainActor
 @Observable
@@ -16,10 +18,12 @@ public final class FavoritesStore {
     @ObservationIgnored private let repository: FavoritesRepositoryProtocol
     /// Reactive set of favorite movie IDs
     public var favoriteMovieIds: Set<Int> = []
+    private let backgroundFetcher: FavoritesBackgroundFetcher
 
     /// Initialize with synchronous loading
-    public init(favoritesLocalDataSource: FavoritesLocalDataSourceProtocol = FavoritesLocalDataSource()) {
+    public init(favoritesLocalDataSource: FavoritesLocalDataSourceProtocol = FavoritesLocalDataSource(), container: ModelContainer) {
         self.repository = FavoritesRepository(localDataSource: favoritesLocalDataSource)
+        self.backgroundFetcher = FavoritesBackgroundFetcher(container: container)
         loadFavorites()
     }
 
@@ -40,7 +44,7 @@ public final class FavoritesStore {
         // Optimistic update - remove from UI immediately
         favoriteMovieIds.remove(movieId)
 
-        // Try to persist the change
+        // Persist synchronously (operations are small; avoid actor-safety violations)
         do {
             try repository.removeFromFavorites(movieId: movieId)
         } catch {
@@ -59,7 +63,7 @@ extension FavoritesStore: FavoritesStoreProtocol {
         // Optimistic update - add to UI immediately
         favoriteMovieIds.insert(movie.id)
 
-        // Try to persist the change
+        // Persist synchronously
         do {
             try repository.addToFavorites(movie: movie)
         } catch {
@@ -73,7 +77,7 @@ extension FavoritesStore: FavoritesStoreProtocol {
         // Optimistic update - add to UI immediately
         favoriteMovieIds.insert(details.id)
 
-        // Try to persist the change
+        // Persist synchronously
         do {
             try repository.addToFavorites(details: details)
         } catch {
@@ -82,16 +86,7 @@ extension FavoritesStore: FavoritesStoreProtocol {
             AppLog.persistence.error("Failed to add favorite \(details.id): \(error)")
         }
     }
-
-    public func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) -> [Movie] {
-        do {
-            return try repository.getFavorites(page: page, pageSize: pageSize, sortOrder: sortOrder)
-        } catch {
-            AppLog.persistence.error("Failed to get favorites: \(error)")
-            return []
-        }
-    }
-
+    
     public func getFavoriteDetails(movieId: Int) -> MovieDetails? {
         repository.getFavoriteDetails(movieId: movieId)
     }
@@ -133,5 +128,25 @@ extension FavoritesStore: FavoritesStoreProtocol {
         }
         // No details provided, return current status
         return isFavorite(movieId: movieId)
+    }
+
+    public func fetchAllFavorites(sortOrder: MovieSortOrder?) async -> [Movie] {
+        // Delegate heavy fetch to background actor
+        do {
+            return try await backgroundFetcher.fetchAllFavorites(sortedBy: sortOrder)
+        } catch {
+            AppLog.persistence.error("Failed to fetch all favorites: \(error)")
+            return []
+        }
+    }
+
+    public func fetchFirstPage(sortOrder: MovieSortOrder, pageSize: Int) async -> (items: [Movie], cursor: FavoritesPageCursor?) {
+        do { return try await backgroundFetcher.fetchFirstPage(sortedBy: sortOrder, pageSize: pageSize) }
+        catch { AppLog.persistence.error("Failed first page: \(error)"); return ([], nil) }
+    }
+
+    public func fetchNextPage(cursor: FavoritesPageCursor, pageSize: Int) async -> (items: [Movie], cursor: FavoritesPageCursor?) {
+        do { return try await backgroundFetcher.fetchNextPage(cursor: cursor, pageSize: pageSize) }
+        catch { AppLog.persistence.error("Failed next page: \(error)"); return ([], nil) }
     }
 }

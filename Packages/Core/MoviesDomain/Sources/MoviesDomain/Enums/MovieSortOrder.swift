@@ -16,6 +16,7 @@ public enum MovieSortOrder: String, CaseIterable, Identifiable, Sendable, SortOp
     case ratingDescending
     case releaseDateAscending
     case releaseDateDescending
+    case recentlyAdded
 
     public var id: String { rawValue }
 
@@ -28,6 +29,7 @@ public enum MovieSortOrder: String, CaseIterable, Identifiable, Sendable, SortOp
         case .ratingDescending: return .DomainL10n.ratingDescending
         case .releaseDateAscending: return .DomainL10n.releaseDateAscending
         case .releaseDateDescending: return .DomainL10n.releaseDateDescending
+        case .recentlyAdded: return .DomainL10n.recentlyAdded
         }
     }
 
@@ -37,6 +39,7 @@ public enum MovieSortOrder: String, CaseIterable, Identifiable, Sendable, SortOp
     }
 
     /// TMDB server-side sort parameter value for endpoints that support it
+    /// Note: recentlyAdded is only used for favorites, not TMDB API
     public var tmdbSortValue: String {
         switch self {
         case .popularityAscending: return "popularity.asc"
@@ -45,6 +48,9 @@ public enum MovieSortOrder: String, CaseIterable, Identifiable, Sendable, SortOp
         case .ratingDescending: return "vote_average.desc"
         case .releaseDateAscending: return "release_date.asc"
         case .releaseDateDescending: return "release_date.desc"
+        case .recentlyAdded:
+            // This should never be called for TMDB API, but provide a fallback
+            return "popularity.desc"
         }
     }
 }
@@ -66,6 +72,10 @@ public extension Array where Element == Movie {
             return self.sorted { $0.releaseDate < $1.releaseDate }
         case .releaseDateDescending:
             return self.sorted { $0.releaseDate > $1.releaseDate }
+        case .recentlyAdded:
+            // recentlyAdded is only meaningful for favorites with createdAt timestamps
+            // For general movie arrays, return unsorted
+            return self
         }
     }
 }

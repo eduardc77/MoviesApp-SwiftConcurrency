@@ -56,6 +56,8 @@ public final class MovieDetailViewModel {
             let details = try await repository.fetchMovieDetails(id: movieId)
             self.movie = details
             self.isLoading = false
+        } catch is CancellationError {
+            self.isLoading = false
         } catch {
             self.error = error
             self.isLoading = false

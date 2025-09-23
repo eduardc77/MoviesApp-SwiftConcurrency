@@ -17,8 +17,8 @@ public struct FavoritesView: View {
     @State private var viewModel: FavoritesViewModel
     @State private var shouldScrollToTop = false
 
-    public init(repository: MovieRepositoryProtocol, favoriteStore: FavoritesStoreProtocol) {
-        _viewModel = State(initialValue: FavoritesViewModel(repository: repository, favoritesStore: favoriteStore))
+    public init(favoriteStore: FavoritesStoreProtocol) {
+        _viewModel = State(initialValue: FavoritesViewModel(favoritesStore: favoriteStore))
     }
 
     public var body: some View {
@@ -44,12 +44,14 @@ public struct FavoritesView: View {
                 } description: {
                     Text(.FavoritesL10n.emptyDescription)
                 }
-            case .content:
-                CardGridView(items: viewModel.items,
+            case .content(let items):
+                CardGridView(items: items,
                              onTap: { item in appRouter.navigateToMovieDetails(movieId: item.id) },
                              onFavoriteToggle: { item in viewModel.toggleFavorite(item.id) },
                              isFavorite: { item in viewModel.isFavorite(item.id) },
-                             onLoadNext: { viewModel.loadNextIfNeeded(currentItem: viewModel.items.last) },
+                             onLoadNext: {
+                                 viewModel.loadNextIfNeeded(currentItem: viewModel.items.last)
+                             },
                              showLoadingOverlay: viewModel.isLoadingNext,
                              onRefresh: { await viewModel.refresh() },
                              shouldScrollToTop: $shouldScrollToTop)
@@ -62,7 +64,9 @@ public struct FavoritesView: View {
 #endif
         .sortToolbar(
             onPresentDialog: { sortOrder, onSelect in
-                appRouter.presentSortOptions(current: sortOrder) { selectedOption in
+                // Exclude popularity-based sorts for favorites to ensure consistent ordering
+                let favoriteSortOptions = MovieSortOrder.allCases.filter { $0 != .popularityAscending && $0 != .popularityDescending }
+                appRouter.presentSortOptions(available: favoriteSortOptions, current: sortOrder) { selectedOption in
                     onSelect(selectedOption)
                 }
             },
@@ -72,7 +76,11 @@ public struct FavoritesView: View {
             shouldScrollToTop = true
         }
         .task(id: viewModel.favoritesStore.favoriteMovieIds) {
-            viewModel.favoritesDidChange()
+            if viewModel.items.isEmpty {
+                await viewModel.refresh()        // initial load
+            } else {
+                viewModel.favoritesDidChange()   // incremental updates
+            }
         }
     }
 }

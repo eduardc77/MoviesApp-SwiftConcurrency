@@ -22,9 +22,6 @@ public protocol FavoritesRepositoryProtocol {
     /// Adds a snapshot of MovieDetails to favorites
     func addToFavorites(details: MovieDetails) throws
 
-    /// Fetch a page of favorited movies from local storage
-    func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) throws -> [Movie]
-
     /// Fetch locally stored favorite details snapshot if available
     func getFavoriteDetails(movieId: Int) -> MovieDetails?
 }

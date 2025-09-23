@@ -12,6 +12,7 @@ import SharedModels
 @testable import MoviesNetwork
 @testable import AppLog
 @testable import MoviesData
+import SwiftData
 
 private final class URLProtocolStub_Detail: URLProtocol {
     struct Response {
@@ -78,7 +79,9 @@ final class MovieDetailIntegrationTests: XCTestCase {
         }
 
         let repo = makeRepository()
-        let store = FavoritesStore(favoritesLocalDataSource: InMemoryFavoritesLocalDataSourceStub())
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: config)
+        let store = FavoritesStore(favoritesLocalDataSource: InMemoryFavoritesLocalDataSourceStub(), container: container)
         let vm = MovieDetailViewModel(repository: repo, favoritesStore: store, movieId: 99)
 
         // Wait for async initialization to complete
@@ -110,14 +113,6 @@ final class InMemoryFavoritesLocalDataSourceStub: @unchecked Sendable, Favorites
 
     func isFavorite(movieId: Int) -> Bool {
         return ids.contains(movieId)
-    }
-
-    func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) throws -> [Movie] {
-        let sorted = Array(ids).sorted()
-        let start = max(page - 1, 0) * pageSize
-        let end = min(start + pageSize, sorted.count)
-        let slice = (start < end) ? Array(sorted[start..<end]) : []
-        return slice.map { id in Movie(id: id, title: "t\(id)", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 0, voteCount: 0, genres: [], popularity: 0) }
     }
 
     func getFavoriteDetails(movieId: Int) -> MovieDetails? {

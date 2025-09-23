@@ -7,6 +7,7 @@
 
 import XCTest
 import SharedModels
+import SwiftData
 @testable import MoviesHome
 @testable import MoviesDomain
 @testable import MoviesData
@@ -75,6 +76,8 @@ private final class RepoMock: MovieRepositoryProtocol {
                 items.sort { $0.releaseDate < $1.releaseDate }
             case .releaseDateDescending:
                 items.sort { $0.releaseDate > $1.releaseDate }
+            case .recentlyAdded:
+                break
             }
         }
 
@@ -108,7 +111,8 @@ private final class RepoMock: MovieRepositoryProtocol {
 final class HomeViewModelTests: XCTestCase {
     func testLoadResetReplacesItemsAndSetsPagination() async throws {
         let repo = RepoMock()
-        let store = FavoritesStore()
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: FavoritesLocalDataSource(container: container), container: container)
         let vm = HomeViewModel(repository: repo, favoritesStore: store)
         vm.category = .nowPlaying
         await vm.load(reset: true)
@@ -117,7 +121,8 @@ final class HomeViewModelTests: XCTestCase {
 
     func testLoadNextThresholdTriggersPagination() async throws {
         let repo = RepoMock()
-        let store = FavoritesStore()
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: FavoritesLocalDataSource(container: container), container: container)
         let vm = HomeViewModel(repository: repo, favoritesStore: store)
         vm.category = .nowPlaying
         await vm.load(reset: true)
@@ -128,7 +133,8 @@ final class HomeViewModelTests: XCTestCase {
 
     func testSetSortOrderAppliesSorting() async throws {
         let repo = RepoMock()
-        let store = FavoritesStore()
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: FavoritesLocalDataSource(container: container), container: container)
         let vm = HomeViewModel(repository: repo, favoritesStore: store)
         vm.category = .nowPlaying
         await vm.load(reset: true)
@@ -139,7 +145,8 @@ final class HomeViewModelTests: XCTestCase {
 
     func testPaginationStopsAtLastPage() async throws {
         let repo = RepoMock()
-        let store = FavoritesStore()
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: FavoritesLocalDataSource(container: container), container: container)
         let vm = HomeViewModel(repository: repo, favoritesStore: store)
         vm.category = .nowPlaying
         // Load all 3 pages
@@ -159,7 +166,8 @@ final class HomeViewModelTests: XCTestCase {
         // Performance test: Ensure pagination handles large datasets efficiently
         // This simulates loading many pages without performance degradation
         let repo = RepoMock()
-        let store = FavoritesStore()
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: FavoritesLocalDataSource(container: container), container: container)
         let vm = HomeViewModel(repository: repo, favoritesStore: store)
         vm.category = .nowPlaying
 

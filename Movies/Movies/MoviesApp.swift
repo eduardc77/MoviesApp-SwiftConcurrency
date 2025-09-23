@@ -9,6 +9,7 @@ import SwiftUI
 import MoviesDesignSystem
 import AppLog
 import MoviesNavigation
+import SwiftData
 
 @main
 struct MoviesApp: App {
@@ -36,6 +37,7 @@ struct MoviesApp: App {
             ContentView()
                 .environment(appRouter)
                 .environment(appEnvironment)
+                .modelContainer(appEnvironment.modelContainer)
         }
     }
 }

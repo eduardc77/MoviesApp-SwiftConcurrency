@@ -23,15 +23,15 @@ struct DialogPresenter: ViewModifier {
                 ),
                 titleVisibility: .visible
             ) {
-                if case .sortOptions(let current, let onSelect) = appRouter.dialog {
-                    sortDialogContent(current: current, onSelect: onSelect)
+                if case .sortOptions(let available, let current, let onSelect) = appRouter.dialog {
+                    sortDialogContent(available: available, current: current, onSelect: onSelect)
                 }
             }
     }
 
     @ViewBuilder
-    private func sortDialogContent(current: MovieSortOrder?, onSelect: @escaping (MovieSortOrder) -> Void) -> some View {
-        ForEach(MovieSortOrder.allCases) { option in
+    private func sortDialogContent(available: [MovieSortOrder], current: MovieSortOrder?, onSelect: @escaping (MovieSortOrder) -> Void) -> some View {
+        ForEach(available, id: \.id) { option in
             Button {
                 onSelect(option)
                 appRouter.dismissDialog()

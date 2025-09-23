@@ -8,6 +8,7 @@
 import XCTest
 import SharedModels
 import MoviesDomain
+import SwiftData
 @testable import MoviesDetails
 @testable import MoviesDomain
 @testable import MoviesData
@@ -33,14 +34,6 @@ private final class InMemoryFavoritesLocalDataSource: @unchecked Sendable, Favor
 
     func isFavorite(movieId: Int) -> Bool {
         return ids.contains(movieId)
-    }
-
-    func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) throws -> [Movie] {
-        let sorted = Array(ids).sorted()
-        let start = max(page - 1, 0) * pageSize
-        let end = min(start + pageSize, sorted.count)
-        let slice = (start < end) ? Array(sorted[start..<end]) : []
-        return slice.map { id in Movie(id: id, title: "t\(id)", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 0, voteCount: 0, genres: [], popularity: 0) }
     }
 
     func getFavoriteDetails(movieId: Int) -> MovieDetails? {
@@ -112,7 +105,8 @@ private final class FailingRepoMock: MovieRepositoryProtocol {
 final class MovieDetailViewModelTests: XCTestCase {
     func testFetchLifecycleAndToggleFavorite() async throws {
         let repo = RepoMock()
-        let store = FavoritesStore(favoritesLocalDataSource: InMemoryFavoritesLocalDataSource())
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: FavoritesLocalDataSource(container: container), container: container)
         let vm = MovieDetailViewModel(repository: repo, favoritesStore: store, movieId: 7)
 
         // Wait for async initialization to complete
@@ -125,7 +119,8 @@ final class MovieDetailViewModelTests: XCTestCase {
 
     func testFetchSetsErrorOnFailure() async throws {
         let repo = FailingRepoMock()
-        let store = FavoritesStore()
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: FavoritesLocalDataSource(container: container), container: container)
         let vm = MovieDetailViewModel(repository: repo, favoritesStore: store, movieId: 1)
 
         // Wait for async initialization to complete

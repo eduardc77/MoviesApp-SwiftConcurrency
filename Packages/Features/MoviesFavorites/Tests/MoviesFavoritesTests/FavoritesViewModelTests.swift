@@ -7,6 +7,7 @@
 
 import XCTest
 import SharedModels
+import SwiftData
 @testable import MoviesFavorites
 @testable import MoviesDomain
 @testable import MoviesData
@@ -32,14 +33,6 @@ private class InMemoryFavoritesLocalDataSource: @unchecked Sendable, FavoritesLo
 
     func isFavorite(movieId: Int) -> Bool {
         return ids.contains(movieId)
-    }
-
-    func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) throws -> [Movie] {
-        let sorted = Array(ids).sorted()
-        let start = max(page - 1, 0) * pageSize
-        let end = min(start + pageSize, sorted.count)
-        let slice = (start < end) ? Array(sorted[start..<end]) : []
-        return slice.map { id in Movie(id: id, title: "t\(id)", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 0, voteCount: 0, genres: [], popularity: 0) }
     }
 
     func getFavoriteDetails(movieId: Int) -> MovieDetails? {
@@ -84,29 +77,32 @@ private final class RepoMock: MovieRepositoryProtocol {
 @MainActor
 final class FavoritesViewModelTests: XCTestCase {
     func testReloadReflectsFavoritesAfterAdd() async throws {
-        let repo = RepoMock()
-        let store = FavoritesStore(favoritesLocalDataSource: InMemoryFavoritesLocalDataSource())
-        let vm = FavoritesViewModel(repository: repo, favoritesStore: store)
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: FavoritesLocalDataSource(container: container), container: container)
+        let vm = FavoritesViewModel(favoritesStore: store)
 
         // Initially empty
         vm.reload()
+        try await Task.sleep(for: .milliseconds(150))
         XCTAssertTrue(vm.items.isEmpty)
 
         // Add favorite and reload
         store.addToFavorites(movie: Movie(id: 42, title: "t", overview: "o", posterPath: nil, backdropPath: nil, releaseDate: "2023-01-01", voteAverage: 1, voteCount: 1, genres: [], popularity: 0))
         vm.reload()
+        try await Task.sleep(for: .milliseconds(200))
         XCTAssertEqual(vm.items.map { $0.id }, [42])
 
         // Remove and reload
         store.removeFromFavorites(movieId: 42)
         vm.reload()
+        try await Task.sleep(for: .milliseconds(150))
         XCTAssertTrue(vm.items.isEmpty)
     }
 
-    func testFavoritesStoreIsAccessibleForObservation() {
-        let repo = RepoMock()
-        let store = FavoritesStore(favoritesLocalDataSource: InMemoryFavoritesLocalDataSource())
-        let vm = FavoritesViewModel(repository: repo, favoritesStore: store)
+    func testFavoritesStoreIsAccessibleForObservation() throws {
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: FavoritesLocalDataSource(container: container), container: container)
+        let vm = FavoritesViewModel(favoritesStore: store)
 
         // Verify ViewModel exposes store for View observation
         XCTAssertNotNil(vm.favoritesStore)

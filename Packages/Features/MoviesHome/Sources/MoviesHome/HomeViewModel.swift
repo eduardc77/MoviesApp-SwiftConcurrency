@@ -99,6 +99,10 @@ public final class HomeViewModel {
 
             self.isLoading = false
             self.isLoadingNext = false
+        } catch is CancellationError {
+            // Ignore cancellations from rapid user changes
+            self.isLoading = false
+            self.isLoadingNext = false
         } catch {
             self.error = error
             self.isLoading = false

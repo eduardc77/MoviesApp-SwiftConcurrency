@@ -7,7 +7,9 @@
 
 import XCTest
 import MoviesDomain
+import SwiftData
 @testable import MoviesData
+import SwiftData
 
 private final class LocalDataSourceMock: @unchecked Sendable, FavoritesLocalDataSourceProtocol {
     var ids: Set<Int> = []
@@ -86,7 +88,8 @@ final class FavoritesStoreTests: XCTestCase {
     func testInitialLoadPopulatesIds() {
         let mock = LocalDataSourceMock()
         mock.ids = [1,2]
-        let store = FavoritesStore(favoritesLocalDataSource: mock)
+        let container = try! ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: mock, container: container)
         let exp = expectation(description: "loaded")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             XCTAssertEqual(store.favoriteMovieIds, [1,2])
@@ -98,7 +101,8 @@ final class FavoritesStoreTests: XCTestCase {
     func testRemoveFavoriteOptimisticRollbackOnFailure() {
         let mock = LocalDataSourceMock()
         mock.ids = [10]
-        let store = FavoritesStore(favoritesLocalDataSource: mock)
+        let container = try! ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: mock, container: container)
 
         // Verify initial state
         XCTAssertTrue(store.favoriteMovieIds.contains(10))
@@ -113,7 +117,8 @@ final class FavoritesStoreTests: XCTestCase {
 
     func testAddFavoriteOptimisticRollbackOnFailure() {
         let mock = LocalDataSourceMock()
-        let store = FavoritesStore(favoritesLocalDataSource: mock)
+        let container = try! ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = FavoritesStore(favoritesLocalDataSource: mock, container: container)
 
         // Verify initial state (empty)
         XCTAssertFalse(store.favoriteMovieIds.contains(20))
@@ -124,6 +129,46 @@ final class FavoritesStoreTests: XCTestCase {
 
         // Should not contain the movie after rollback
         XCTAssertFalse(store.favoriteMovieIds.contains(20))
+    }
+}
+
+@MainActor
+final class FavoritesPaginationTests: XCTestCase {
+    func testNextPageCursor_recentlyAdded_advancesOnTies() async throws {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: config)
+        let fetcher = FavoritesBackgroundFetcher(container: container)
+
+        let ctx = ModelContext(container)
+        let now = Date()
+        ctx.insert(FavoriteMovieEntity(movieId: 1, title: "a", overview: "", posterPath: nil, backdropPath: nil, releaseDate: "2024-01-01", voteAverage: 7, voteCount: 1, runtime: nil, popularity: 1, tagline: nil, genres: [], createdAt: now))
+        ctx.insert(FavoriteMovieEntity(movieId: 2, title: "b", overview: "", posterPath: nil, backdropPath: nil, releaseDate: "2024-01-02", voteAverage: 7, voteCount: 1, runtime: nil, popularity: 1, tagline: nil, genres: [], createdAt: now))
+        try ctx.save()
+
+        let first = try await fetcher.fetchFirstPage(sortedBy: .recentlyAdded, pageSize: 1)
+        XCTAssertEqual(first.items.count, 1)
+        XCTAssertNotNil(first.cursor)
+        let next = try await fetcher.fetchNextPage(cursor: first.cursor!, pageSize: 2)
+        XCTAssertEqual(Set(next.items.map { $0.id }), Set([1,2]).subtracting([first.items.first!.id]))
+    }
+
+    func testNextPageCursor_releaseDateAscending_advances() async throws {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self, configurations: config)
+        let fetcher = FavoritesBackgroundFetcher(container: container)
+
+        let ctx = ModelContext(container)
+        [
+            FavoriteMovieEntity(movieId: 10, title: "", overview: "", posterPath: nil, backdropPath: nil, releaseDate: "2024-01-01", voteAverage: 5, voteCount: 0, runtime: nil, popularity: 0, tagline: nil, genres: [], createdAt: .now),
+            FavoriteMovieEntity(movieId: 11, title: "", overview: "", posterPath: nil, backdropPath: nil, releaseDate: "2024-01-02", voteAverage: 5, voteCount: 0, runtime: nil, popularity: 0, tagline: nil, genres: [], createdAt: .now),
+            FavoriteMovieEntity(movieId: 12, title: "", overview: "", posterPath: nil, backdropPath: nil, releaseDate: "2024-01-03", voteAverage: 5, voteCount: 0, runtime: nil, popularity: 0, tagline: nil, genres: [], createdAt: .now)
+        ].forEach { ctx.insert($0) }
+        try ctx.save()
+
+        let first = try await fetcher.fetchFirstPage(sortedBy: .releaseDateAscending, pageSize: 2)
+        XCTAssertEqual(first.items.map { $0.id }, [10,11])
+        let next = try await fetcher.fetchNextPage(cursor: first.cursor!, pageSize: 2)
+        XCTAssertEqual(next.items.map { $0.id }, [12])
     }
 }
 

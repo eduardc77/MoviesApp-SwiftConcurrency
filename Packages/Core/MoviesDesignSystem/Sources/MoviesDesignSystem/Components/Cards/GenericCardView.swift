@@ -51,12 +51,12 @@ public struct GenericCardView<Item: CardDisplayable>: View {
                         .clipped()
                     )
                     .clipShape(.rect(cornerRadius: 6))
-                    .padding(.horizontal, 3)
-                    .padding(.top, 3)
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
-                            .stroke(.separator, lineWidth: 0.5)
+                            .stroke(.separator.opacity(0.6), lineWidth: 0.3)
                     )
+                    .padding(.horizontal, 2.6)
+                    .padding(.top, 2.6)
 
                 HStack(alignment: .center) {
                     Text(item.releaseYear)

@@ -28,6 +28,9 @@ public final class AppDependencies {
     /// Networking configuration (exposed for debugging)
     public let networkingConfig: NetworkingConfig
 
+    /// Shared SwiftData container used across the app
+    public let modelContainer: ModelContainer
+
     // MARK: - Initialization
 
     /// Initializes the app environment
@@ -40,10 +43,12 @@ public final class AppDependencies {
             do { return try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self) }
             catch { fatalError("Failed to initialize ModelContainer: \(error)") }
         }()
+        self.modelContainer = container
 
         // Initialize store (reactive layer) with injected container
         self.favorites = FavoritesStore(
-            favoritesLocalDataSource: FavoritesLocalDataSource(container: container)
+            favoritesLocalDataSource: FavoritesLocalDataSource(container: container),
+            container: container
         )
     }
 
@@ -60,8 +65,10 @@ public final class AppDependencies {
             do { return try ModelContainer(for: FavoriteMovieEntity.self, FavoriteGenreEntity.self) }
             catch { fatalError("Failed to initialize ModelContainer: \(error)") }
         }()
+        self.modelContainer = container
         self.favorites = FavoritesStore(
-            favoritesLocalDataSource: FavoritesLocalDataSource(container: container)
+            favoritesLocalDataSource: FavoritesLocalDataSource(container: container),
+            container: container
         )
         self.networkingConfig = networkingConfig
     }

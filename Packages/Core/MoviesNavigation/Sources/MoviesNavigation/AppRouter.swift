@@ -76,10 +76,11 @@ public final class AppRouter {
 
     /// Present sort options dialog at app level
     public func presentSortOptions(
+        available: [MovieSortOrder],
         current: MovieSortOrder?,
         onSelect: @escaping (MovieSortOrder) -> Void
     ) {
-        dialog = .sortOptions(current: current, onSelect: onSelect)
+        dialog = .sortOptions(available: available, current: current, onSelect: onSelect)
     }
 
 
@@ -102,7 +103,7 @@ public final class AppRouter {
 
 /// Simple app-level dialog states
 public enum AppDialog: Equatable {
-    case sortOptions(current: MovieSortOrder?, onSelect: (MovieSortOrder) -> Void)
+    case sortOptions(available: [MovieSortOrder], current: MovieSortOrder?, onSelect: (MovieSortOrder) -> Void)
     case none
 
     public static func == (lhs: AppDialog, rhs: AppDialog) -> Bool {

@@ -10,7 +10,8 @@
     "sort.rating_asc" : { "comment" : "Sort order: Rating ascending", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Rating ascending" } } } },
     "sort.rating_desc" : { "comment" : "Sort order: Rating descending", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Rating descending" } } } },
     "sort.release_asc" : { "comment" : "Sort order: Release date ascending", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Release date ascending" } } } },
-    "sort.release_desc" : { "comment" : "Sort order: Release date descending", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Release date descending" } } } }
+    "sort.release_desc" : { "comment" : "Sort order: Release date descending", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Release date descending" } } } },
+    "sort.recently_added" : { "comment" : "Sort order: Recently added to favorites", "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Recently Added" } } } }
   },
   "version" : "1.0"
 }

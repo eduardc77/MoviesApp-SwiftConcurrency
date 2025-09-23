@@ -36,10 +36,6 @@ public final class FavoritesRepository: FavoritesRepositoryProtocol {
         try localDataSource.addToFavorites(details: details)
     }
 
-    public func getFavorites(page: Int, pageSize: Int, sortOrder: MovieSortOrder?) throws -> [Movie] {
-        try localDataSource.getFavorites(page: page, pageSize: pageSize, sortOrder: sortOrder)
-    }
-
     public func getFavoriteDetails(movieId: Int) -> MovieDetails? {
         localDataSource.getFavoriteDetails(movieId: movieId)
     }

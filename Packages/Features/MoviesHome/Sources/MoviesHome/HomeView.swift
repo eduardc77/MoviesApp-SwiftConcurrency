@@ -90,7 +90,9 @@ public struct HomeView: View {
         #endif
         .sortToolbar(
             onPresentDialog: { sortOrder, onSelect in
-                appRouter.presentSortOptions(current: sortOrder) { selectedOption in
+                // Only show general sort options (exclude recentlyAdded which is favorites-only)
+                let generalSortOptions = MovieSortOrder.allCases.filter { $0 != .recentlyAdded }
+                appRouter.presentSortOptions(available: generalSortOptions, current: sortOrder) { selectedOption in
                     onSelect(selectedOption)
                 }
             },

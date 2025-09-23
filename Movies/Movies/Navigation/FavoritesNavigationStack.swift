@@ -19,7 +19,7 @@ public struct FavoritesNavigationStack: View {
     public var body: some View {
         @Bindable var appRouter = appRouter
         NavigationStack(path: $appRouter.favoritesPath) {
-            FavoritesView(repository: appDependencies.movieRepository, favoriteStore: appDependencies.favorites)
+            FavoritesView(favoriteStore: appDependencies.favorites)
                 .withAppDestinations()
         }
     }

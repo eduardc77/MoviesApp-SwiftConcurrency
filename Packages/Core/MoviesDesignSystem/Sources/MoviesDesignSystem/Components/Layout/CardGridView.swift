@@ -62,14 +62,14 @@ public struct CardGridView<Item: CardDisplayable>: View {
                         ))
                         .onAppear {
                             if let index = items.firstIndex(where: { $0.idKey == item.idKey }),
-                               index >= items.count - 3 && !hasTriggeredLoadNext {
+                               index >= items.count - UIScrollingDefaults.gridPrefetchThreshold && !hasTriggeredLoadNext {
                                 hasTriggeredLoadNext = true
                                 onLoadNext?()
                             }
                         }
                     }
                 }
-                .animation(.spring(duration: 0.4, bounce: 0.2), value: items.count)
+                .animation(.spring(duration: 0.4, bounce: 0.2), value: items.map(\.idKey))
                 .padding(10)
                 .id("grid-top") // Anchor for scroll-to-top
 
@@ -89,9 +89,14 @@ public struct CardGridView<Item: CardDisplayable>: View {
             .onChange(of: shouldScrollToTop) { _, shouldScroll in
                 if shouldScroll && !hasScrolledToTop {
                     hasScrolledToTop = true
-                    scrollProxy.scrollTo("grid-top", anchor: .top)
-                    hasScrolledToTop = false
-                    shouldScrollToTop = false // Reset the binding
+                    // Defer to next runloop so grid updates (new sort/page 1) are applied
+                    DispatchQueue.main.async {
+                        scrollProxy.scrollTo("grid-top", anchor: .top)
+                        // Reset flags after scrolling
+                        hasScrolledToTop = false
+                        hasTriggeredLoadNext = false
+                        shouldScrollToTop = false
+                    }
                 }
             }
             .background(Color.secondary.opacity(0.4))
