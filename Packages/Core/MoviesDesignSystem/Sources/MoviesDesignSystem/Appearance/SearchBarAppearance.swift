@@ -12,13 +12,30 @@ import UIKit
 /// Centralized UIAppearance configuration for SearchBar
 public enum SearchBarAppearance {
     /// Configure global appearance for SearchBar
-    @MainActor public static func configure() {
+    @MainActor
+    public static func configure() {
 #if canImport(UIKit)
+        guard #unavailable(iOS 26.0) else { return }
+
         // MARK: Search Bar (for SwiftUI .searchable)
         let searchBar = UISearchBar.appearance()
         searchBar.barTintColor = .white
         searchBar.backgroundColor = .black
+        searchBar.searchTextField.backgroundColor = UIColor.systemGray
         searchBar.tintColor = .white
+
+        searchBar.searchTextField.defaultTextAttributes = [
+            NSAttributedString.Key.foregroundColor: UIColor.label,
+            NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .body),
+        ]
+        searchBar.searchTextField.attributedPlaceholder = NSAttributedString(
+            string: "Search Movies",
+            attributes: [.foregroundColor: UIColor.systemGray]
+        )
+        let searchTF = UISearchTextField.appearance(whenContainedInInstancesOf: [UISearchBar.self])
+        searchTF.backgroundColor = UIColor.systemGray6
+        searchTF.textColor = .label
+        searchTF.tintColor = .label
 
         // Use a bold magnifying glass icon
         let boldSymbol = UIImage.SymbolConfiguration(weight: .bold)
@@ -29,22 +46,10 @@ public enum SearchBarAppearance {
             searchBar.setImage(magnifier, for: .search, state: .normal)
             searchBar.setImage(magnifier, for: .search, state: .highlighted)
         }
-        let searchTF = UISearchTextField.appearance(whenContainedInInstancesOf: [UISearchBar.self])
-        searchTF.backgroundColor = UIColor.systemGray6
-        searchTF.textColor = .black
-        searchTF.tintColor = .black
-        searchTF.attributedPlaceholder = NSAttributedString(
-            string: "Search Movies",
-            attributes: [.foregroundColor: UIColor.systemGray]
-        )
-        searchTF.defaultTextAttributes = [
-            NSAttributedString.Key.foregroundColor: UIColor.black,
-            NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .body),
-        ]
+
         // Set search bar icon tint color
         let searchIconImages = UIImageView.appearance(whenContainedInInstancesOf: [UISearchBar.self])
         searchIconImages.tintColor = .black
-
 #else
         // No-op on non-UIKit platforms (e.g., macOS when running SwiftPM tests)
 #endif

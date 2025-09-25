@@ -23,9 +23,6 @@ public enum NavigationAppearance {
         backButtonAppearance.normal.titleTextAttributes = [
             .foregroundColor: UIColor.white
         ]
-        backButtonAppearance.highlighted.titleTextAttributes = [
-            .foregroundColor: UIColor.lightGray
-        ]
         navAppearance.backButtonAppearance = backButtonAppearance
         navAppearance.titleTextAttributes = [
             .foregroundColor: UIColor.white
@@ -50,7 +47,6 @@ public enum NavigationAppearance {
         let tabBar = UITabBar.appearance()
         tabBar.standardAppearance = tabAppearance
         tabBar.scrollEdgeAppearance = tabAppearance
-        tabBar.barStyle = .black
         tabBar.tintColor = .white
         #else
         // No-op on non-UIKit platforms (e.g., macOS when running SwiftPM tests)

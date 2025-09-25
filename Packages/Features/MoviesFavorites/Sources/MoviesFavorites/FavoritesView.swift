@@ -8,7 +8,6 @@
 import SwiftUI
 import MoviesDesignSystem
 import MoviesDomain
-import MoviesData
 import MoviesNavigation
 
 /// Main view for displaying favorite movies

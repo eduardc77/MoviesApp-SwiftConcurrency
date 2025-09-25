@@ -80,6 +80,9 @@ public struct HomeView: View {
                 }
                 #if os(iOS)
                 .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.clear)
+                .ignoresSafeArea(edges: .bottom)
                 #endif
             }
 
